@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cotisations - Tontine</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>💵 Gestion des Cotisations</h1>
+        <p id="headerDate">Réunion du ...</p>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="nav">
+        <ul>
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="membres.html">Membres</a></li>
+          <li><a href="reunions.html">Réunions</a></li>
+          <li><a href="rapports.html">Rapports</a></li>
+        </ul>
+      </nav>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- Alerts -->
+        <div id="alert" class="alert"></div>
+
+        <!-- Boutons d'action -->
+        <div class="d-flex actions-rapides">
+          >
+          <h2>Cotisations et présences</h2>
+          <div class="d-flex actions-rapides">
+            >
+            <button class="btn btn-info" onclick="ouvrirModalConfiguration()">
+              ⚙️ Configuration
+            </button>
+            <button
+              class="btn btn-warning"
+              id="btnCloture"
+              onclick="cloturerReunion()"
+            >
+              🔒 Clôturer la réunion
+            </button>
+          </div>
+        </div>
+
+        <!-- Totaux -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3 id="totalMensuelle">0 FCFA</h3>
+            <p>Cotisations mensuelles</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="totalSpeciale">0 FCFA</h3>
+            <p>Cotisations spéciales</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="totalPenalite">0 FCFA</h3>
+            <p>Pénalités</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="totalGeneral">0 FCFA</h3>
+            <p>Total général</p>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Chargement des cotisations...</p>
+        </div>
+
+        <!-- Table des cotisations -->
+        <div id="cotisationsTable">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Membre</th>
+                  <th>Numéro</th>
+                  <th>Présent</th>
+                  <th>Cotisation mensuelle</th>
+                  <th>Cotisation spéciale</th>
+                  <th>Pénalité</th>
+                  <th>Total</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="cotisationsBody">
+                <!-- Les cotisations seront ajoutées ici -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state">
+          <h3>Aucune donnée</h3>
+          <p>Impossible de charger les cotisations</p>
+          <a href="reunions.html" class="btn btn-primary mt-20"
+            >Retour aux réunions</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Modifier Cotisation -->
+    <div id="modalCotisation" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Modifier la cotisation</h2>
+        </div>
+        <form id="cotisationForm">
+          <input type="hidden" id="cotisationId" />
+
+          <p><strong>Membre :</strong> <span id="membreNom"></span></p>
+
+          <div class="form-group">
+            <label for="cotisationMensuelle">Cotisation mensuelle (FCFA)</label>
+            <input
+              type="number"
+              id="cotisationMensuelle"
+              class="form-control"
+              min="0"
+              step="100"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="cotisationSpeciale">Cotisation spéciale (FCFA)</label>
+            <input
+              type="number"
+              id="cotisationSpeciale"
+              class="form-control"
+              min="0"
+              step="100"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="penalite">Pénalité (FCFA)</label>
+            <input
+              type="number"
+              id="penalite"
+              class="form-control"
+              min="0"
+              step="100"
+              required
+            />
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="fermerModalCotisation()"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Configuration -->
+    <div id="modalConfig" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>⚙️ Configuration des montants</h2>
+        </div>
+        <form id="configForm">
+          <div class="form-group">
+            <label for="configMensuelle"
+              >Cotisation mensuelle par défaut (FCFA)</label
+            >
+            <input
+              type="number"
+              id="configMensuelle"
+              class="form-control"
+              min="0"
+              step="100"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="configSpeciale"
+              >Cotisation spéciale par défaut (FCFA)</label
+            >
+            <input
+              type="number"
+              id="configSpeciale"
+              class="form-control"
+              min="0"
+              step="100"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="configPenalite"
+              >Pénalité de retard par défaut (FCFA)</label
+            >
+            <input
+              type="number"
+              id="configPenalite"
+              class="form-control"
+              min="0"
+              step="100"
+              required
+            />
+          </div>
+
+          <div class="alert alert-warning show">
+            <strong>⚠️ Attention :</strong> Ces valeurs seront utilisées pour
+            les prochaines réunions. Les réunions existantes ne seront pas
+            modifiées.
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="fermerModalConfig()"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="js/cotisations.js"></script>
+  </body>
+</html>

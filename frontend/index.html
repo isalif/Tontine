@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion de Tontine - Accueil</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>💰 Gestion de Ressortissant de Kalfou(Niamey)</h1>
+        <p>Application de gestion des cotisations mensuelles</p>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="nav">
+        <ul>
+          <li><a href="index.html" class="active">Accueil</a></li>
+          <li><a href="membres.html">Membres</a></li>
+          <li><a href="reunions.html">Réunions</a></li>
+          <li><a href="listes-presence.html">Listes de présence</a></li>
+          <li><a href="rapports.html">Rapports</a></li>
+        </ul>
+      </nav>
+
+      <!-- Content -->
+      <div class="content">
+        <h2>Tableau de bord</h2>
+
+        <!-- Statistiques -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3 id="totalMembres">0</h3>
+            <p>Membres actifs</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="totalReunions">0</h3>
+            <p>Réunions organisées</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="reunionEnCours">0</h3>
+            <p>Réunions en cours</p>
+          </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="card">
+          <h3 class="card-title">Actions rapides</h3>
+          <div class="card-body">
+            <div class="d-flex gap-10">
+              <a href="membres.html" class="btn btn-primary"
+                >👥 Gérer les membres</a
+              >
+              <a href="reunions.html" class="btn btn-success"
+                >📅 Nouvelle réunion</a
+              >
+              <a href="rapports.html" class="btn btn-info"
+                >📊 Consulter les rapports</a
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Dernières réunions -->
+        <div class="card mt-20">
+          <h3 class="card-title">Dernières réunions</h3>
+          <div class="card-body">
+            <div id="loadingReunions" class="loading">
+              <div class="spinner"></div>
+              <p>Chargement des réunions...</p>
+            </div>
+            <div id="dernieresReunions"></div>
+            <div id="emptyReunions" class="empty-state">
+              <h3>Aucune réunion</h3>
+              <p>Commencez par créer votre première réunion</p>
+              <a href="reunions.html" class="btn btn-primary mt-20"
+                >Créer une réunion</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:3000/api";
+
+      // Charger les statistiques au chargement de la page
+      window.addEventListener("DOMContentLoaded", () => {
+        chargerStatistiques();
+        chargerDernieresReunions();
+      });
+
+      // Charger les statistiques
+      async function chargerStatistiques() {
+        try {
+          // Nombre de membres
+          const resMembres = await fetch(`${API_URL}/membres/count`);
+          const dataMembres = await resMembres.json();
+          if (dataMembres.success) {
+            document.getElementById("totalMembres").textContent =
+              dataMembres.data.total;
+          }
+
+          // Nombre de réunions
+          const resReunions = await fetch(`${API_URL}/reunions`);
+          const dataReunions = await resReunions.json();
+          if (dataReunions.success) {
+            const reunions = dataReunions.data;
+            document.getElementById("totalReunions").textContent =
+              reunions.length;
+
+            // Réunions en cours
+            const enCours = reunions.filter(
+              (r) => r.statut === "en_cours",
+            ).length;
+            document.getElementById("reunionEnCours").textContent = enCours;
+          }
+        } catch (error) {
+          console.error("Erreur lors du chargement des statistiques:", error);
+        }
+      }
+
+      // Charger les dernières réunions
+      async function chargerDernieresReunions() {
+        try {
+          const response = await fetch(`${API_URL}/reunions`);
+          const data = await response.json();
+
+          document.getElementById("loadingReunions").style.display = "none";
+
+          if (data.success && data.data.length > 0) {
+            const reunions = data.data.slice(0, 5); // 5 dernières
+            let html =
+              "<table><thead><tr><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>";
+
+            reunions.forEach((reunion) => {
+              const date = new Date(reunion.date_reunion);
+              const dateFormatee = date.toLocaleDateString("fr-FR");
+              const statutBadge =
+                reunion.statut === "en_cours"
+                  ? '<span style="color: #28a745; font-weight: bold;">En cours</span>'
+                  : '<span style="color: #6c757d; font-weight: bold;">Clôturée</span>';
+
+              html += `
+                            <tr>
+                                <td>${dateFormatee}</td>
+                                <td>${statutBadge}</td>
+                                <td>
+                                    <a href="cotisations.html?reunion=${reunion.id}" class="btn btn-sm btn-info">Voir détails</a>
+                                </td>
+                            </tr>
+                        `;
+            });
+
+            html += "</tbody></table>";
+            document.getElementById("dernieresReunions").innerHTML = html;
+            document.getElementById("dernieresReunions").style.display =
+              "block";
+          } else {
+            document.getElementById("emptyReunions").style.display = "block";
+          }
+        } catch (error) {
+          console.error("Erreur lors du chargement des réunions:", error);
+          document.getElementById("loadingReunions").style.display = "none";
+          document.getElementById("emptyReunions").style.display = "block";
+        }
+      }
+    </script>
+  </body>
+</html>

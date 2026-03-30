@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion des Projets - Tontine</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>📋 Gestion des Projets</h1>
+        <p>Suivre et gérer les projets financés par les cotisations</p>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="nav">
+        <ul>
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="membres.html">Membres</a></li>
+          <li><a href="reunions.html">Réunions</a></li>
+          <li><a href="cotisations.html">Cotisations</a></li>
+          <li><a href="listes-presence.html">Listes de présence</a></li>
+          <li><a href="projets.html" class="active">Projets</a></li>
+          <li><a href="rapports.html">Rapports</a></li>
+        </ul>
+      </nav>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- Alerts -->
+        <div id="alert" class="alert"></div>
+
+        <!-- Header actions -->
+        <div class="d-flex justify-between align-center mb-20">
+          <h2>Liste des projets</h2>
+          <button class="btn btn-primary" onclick="ouvrirModalAjout()">
+            ➕ Nouveau projet
+          </button>
+        </div>
+
+        <!-- Filtre -->
+        <div class="form-group">
+          <input
+            type="text"
+            id="filtreInput"
+            class="form-control"
+            placeholder="🔍 Rechercher par nom ou description..."
+            oninput="filtrerProjets()"
+          />
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Chargement des projets...</p>
+        </div>
+
+        <!-- Table -->
+        <div id="projetsTable">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nom du projet</th>
+                  <th>Description</th>
+                  <th>Montant cible</th>
+                  <th>Montant collecté</th>
+                  <th>Avancement</th>
+                  <th>Date début</th>
+                  <th>Date fin</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="projetsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="emptyState" class="empty-state">
+          <h3>Aucun projet</h3>
+          <p>Commencez par créer votre premier projet</p>
+          <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()">
+            ➕ Nouveau projet
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODAL AJOUTER / MODIFIER ===== -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Nouveau projet</h2>
+        </div>
+        <form id="projetForm">
+          <input type="hidden" id="projetId" />
+
+          <div class="form-group">
+            <label for="nom">Nom du projet *</label>
+            <input type="text" id="nom" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea id="description" class="form-control" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="montantCible">Montant cible (FCFA) *</label>
+            <input
+              type="number"
+              id="montantCible"
+              class="form-control"
+              min="0"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="dateDebut">
+              Date de début <small>(optionnel)</small>
+            </label>
+            <input type="date" id="dateDebut" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label for="dateFin">
+              Date de fin <small>(optionnel)</small>
+            </label>
+            <input type="date" id="dateFin" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label for="statut">Statut *</label>
+            <select id="statut" class="form-control">
+              <option value="en_cours">🔵 En cours</option>
+              <option value="termine">🟢 Terminé</option>
+              <option value="annule">🔴 Annulé</option>
+            </select>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="fermerModal()"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== MODAL DÉTAIL ===== -->
+    <div id="modalDetail" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="detailTitre">Détail du projet</h2>
+        </div>
+
+        <div id="detailInfos"></div>
+
+        <!-- Barre de progression -->
+        <div class="form-group mt-20">
+          <label>Avancement</label>
+          <div class="progress-bar-container">
+            <div id="barreProgression" class="progress-bar success">
+              <span id="pourcentageTexte"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cotisations affectées -->
+        <div class="mt-20">
+          <div class="d-flex justify-between align-center mb-20">
+            <h3>Cotisations affectées</h3>
+            <button class="btn btn-primary" onclick="ouvrirModalAffectation()">
+              ➕ Affecter une cotisation
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Membre</th>
+                  <th>Montant</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="cotisationsAffectees"></tbody>
+            </table>
+          </div>
+
+          <div id="emptyCotisations" class="empty-state hidden">
+            <p>Aucune cotisation affectée à ce projet</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="fermerModalDetail()"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODAL AFFECTER COTISATION ===== -->
+    <div id="modalAffectation" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Affecter une cotisation</h2>
+        </div>
+        <form id="affectationForm">
+          <div class="form-group">
+            <label for="selectCotisation">Cotisation *</label>
+            <select id="selectCotisation" class="form-control">
+              <option value="">-- Choisir une cotisation --</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="fermerModalAffectation()"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary">Affecter</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="js/projets.js"></script>
+  </body>
+</html>

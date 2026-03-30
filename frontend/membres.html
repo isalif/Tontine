@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion des Membres - Tontine</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>👥 Gestion des Membres</h1>
+        <p>Ajouter, modifier ou supprimer des membres</p>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="nav">
+        <ul>
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="membres.html" class="active">Membres</a></li>
+          <li><a href="reunions.html">Réunions</a></li>
+          <li><a href="listes-presence.html">Listes de présence</a></li>
+          <li><a href="rapports.html">Rapports</a></li>
+        </ul>
+      </nav>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- Alerts -->
+        <div id="alert" class="alert"></div>
+
+        <!-- Bouton Ajouter -->
+        <div class="d-flex justify-between align-center mb-20">
+          <h2>Liste des membres</h2>
+          <button class="btn btn-primary" onclick="ouvrirModalAjout()">
+            ➕ Ajouter un membre
+          </button>
+        </div>
+
+        <!-- ✅ Filtre -->
+        <div class="form-group">
+          <input
+            type="text"
+            id="filtreInput"
+            class="form-control"
+            placeholder="🔍 Rechercher par nom, prénom ou téléphone..."
+            oninput="filtrerMembres()"
+          />
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Chargement des membres...</p>
+        </div>
+
+        <!-- Table des membres -->
+        <div id="membresTable">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Prénom</th>
+                  <th>Numéro</th>
+                  <th>Date d'ajout</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="membresBody">
+                <!-- Les membres seront ajoutés ici -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state">
+          <h3>Aucun membre</h3>
+          <p>Commencez par ajouter votre premier membre</p>
+          <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()">
+            ➕ Ajouter un membre
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Ajouter/Modifier -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Ajouter un membre</h2>
+        </div>
+        <form id="membreForm">
+          <input type="hidden" id="membreId" />
+
+          <div class="form-group">
+            <label for="nom">Nom *</label>
+            <input type="text" id="nom" class="form-control" required />
+          </div>
+
+          <div class="form-group">
+            <label for="prenom">Prénom *</label>
+            <input type="text" id="prenom" class="form-control" required />
+          </div>
+
+          <div class="form-group">
+            <label for="numero">Numéro de téléphone *</label>
+            <input
+              type="text"
+              id="numero"
+              class="form-control"
+              required
+              placeholder="+227 XX XX XX XX"
+            />
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="abonneAnnuel" />
+              <span
+                ><strong>Abonné annuel</strong> (a payé d'avance pour toute
+                l'année)</span
+              >
+            </label>
+            <small
+              >Cochez si ce membre a déjà payé toutes les cotisations de
+              l'année.</small
+            >
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="cotisationSpecialePayee" />
+              <span><strong>Cotisation spéciale payée</strong></span>
+            </label>
+            <small
+              >Cochez si ce membre a déjà payé la cotisation spéciale
+              d'avance.</small
+            >
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="fermerModal()"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="js/membres.js"></script>
+
+    <!-- ✅ Fonction filtre -->
+    <script>
+      function filtrerMembres() {
+        const recherche = document
+          .getElementById("filtreInput")
+          .value.toLowerCase();
+        const lignes = document.querySelectorAll("#membresBody tr");
+
+        lignes.forEach((ligne) => {
+          const nom = ligne.cells[0]?.textContent.toLowerCase() || "";
+          const prenom = ligne.cells[1]?.textContent.toLowerCase() || "";
+          const tel = ligne.cells[2]?.textContent.toLowerCase() || "";
+
+          if (
+            nom.includes(recherche) ||
+            prenom.includes(recherche) ||
+            tel.includes(recherche)
+          ) {
+            ligne.style.display = "";
+          } else {
+            ligne.style.display = "none";
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

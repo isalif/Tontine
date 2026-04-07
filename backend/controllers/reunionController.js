@@ -1,44 +1,16 @@
 const Reunion = require("../models/Reunion");
 
-// Validation de la date
-const validateDate = (dateReunion) => {
-  const errors = [];
-
-  // Vérifier que la date n'est pas vide
-  if (!dateReunion) {
-    errors.push("La date de réunion est obligatoire");
-    return errors;
-  }
-
-  // Vérifier le format de la date (YYYY-MM-DD)
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!dateRegex.test(dateReunion)) {
-    errors.push("Format de date invalide (attendu: YYYY-MM-DD)");
-    return errors;
-  }
-
-  // Vérifier que la date est valide
-  const date = new Date(dateReunion);
-  if (isNaN(date.getTime())) {
-    errors.push("Date invalide");
-  }
-
-  return errors;
-};
-
 const reunionController = {
-  // Récupérer toutes les réunions
   async getAll(req, res) {
     try {
       const reunions = await Reunion.getAll();
       res.json({ success: true, data: reunions });
     } catch (error) {
-      console.error("Erreur getAll réunions:", error);
+      console.error(error);
       res.status(500).json({ success: false, message: "Erreur serveur" });
     }
   },
 
-  // Récupérer une réunion par ID
   async getById(req, res) {
     try {
       const reunion = await Reunion.getById(req.params.id);
@@ -49,48 +21,43 @@ const reunionController = {
       }
       res.json({ success: true, data: reunion });
     } catch (error) {
-      console.error("Erreur getById réunion:", error);
       res.status(500).json({ success: false, message: "Erreur serveur" });
     }
   },
 
-  // Créer une nouvelle réunion
   async create(req, res) {
     try {
-      const { date_reunion } = req.body;
+      const { titre, date_reunion, projet_id, cotisation_mensuelle } = req.body;
 
-      // Validation de la date
-      const errors = validateDate(date_reunion);
-      if (errors.length > 0) {
+      if (!date_reunion) {
         return res
           .status(400)
-          .json({ success: false, message: "Erreurs de validation", errors });
+          .json({
+            success: false,
+            message: "La date de réunion est obligatoire",
+          });
       }
 
-      // Vérifier que la date n'existe pas déjà
       const dateExists = await Reunion.checkDateExists(date_reunion);
       if (dateExists) {
-        return res.status(400).json({
-          success: false,
-          message: "Une réunion existe déjà pour cette date",
-        });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Une réunion existe déjà à cette date",
+          });
       }
 
-      // Créer la réunion
-      const reunionId = await Reunion.create(date_reunion);
+      const reunionId = await Reunion.create(titre, date_reunion, projet_id);
 
-      // Créer automatiquement les présences pour tous les membres actifs
       await Reunion.createPresences(reunionId);
-
-      // Créer automatiquement les cotisations pour tous les membres
-      await Reunion.createCotisations(reunionId);
+      await Reunion.createCotisations(reunionId, cotisation_mensuelle);
 
       const newReunion = await Reunion.getById(reunionId);
 
       res.status(201).json({
         success: true,
-        message:
-          "Réunion créée avec succès. Les présences et cotisations ont été initialisées.",
+        message: "Réunion créée avec succès",
         data: newReunion,
       });
     } catch (error) {
@@ -99,58 +66,84 @@ const reunionController = {
     }
   },
 
-  // Clôturer une réunion
-  async cloture(req, res) {
+  async update(req, res) {
     try {
       const { id } = req.params;
+      const { titre, date_reunion, projet_id } = req.body;
 
-      // Vérifier si la réunion existe
-      const reunion = await Reunion.getById(id);
-      if (!reunion) {
+      if (!date_reunion) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "La date de réunion est obligatoire",
+          });
+      }
+
+      const reunionExists = await Reunion.getById(id);
+      if (!reunionExists) {
         return res
           .status(404)
           .json({ success: false, message: "Réunion introuvable" });
       }
 
-      // Vérifier si elle n'est pas déjà clôturée
-      if (reunion.statut === "cloturee") {
-        return res.status(400).json({
-          success: false,
-          message: "Cette réunion est déjà clôturée",
-        });
+      if (date_reunion !== reunionExists.date_reunion) {
+        const dateExists = await Reunion.checkDateExists(date_reunion, id);
+        if (dateExists) {
+          return res
+            .status(400)
+            .json({
+              success: false,
+              message: "Une réunion existe déjà à cette date",
+            });
+        }
       }
 
-      await Reunion.cloture(id);
-      const updatedReunion = await Reunion.getById(id);
-
-      res.json({
-        success: true,
-        message: "Réunion clôturée avec succès",
-        data: updatedReunion,
-      });
+      const success = await Reunion.update(id, titre, date_reunion, projet_id);
+      if (success) {
+        const updated = await Reunion.getById(id);
+        res.json({
+          success: true,
+          message: "Réunion modifiée avec succès",
+          data: updated,
+        });
+      } else {
+        res
+          .status(400)
+          .json({ success: false, message: "Aucune modification effectuée" });
+      }
     } catch (error) {
-      console.error("Erreur clôture réunion:", error);
+      console.error(error);
       res.status(500).json({ success: false, message: "Erreur serveur" });
     }
   },
 
-  // Supprimer une réunion
-  async delete(req, res) {
+  async cloture(req, res) {
     try {
-      const { id } = req.params;
-
-      // Vérifier si la réunion existe
-      const reunion = await Reunion.getById(id);
-      if (!reunion) {
-        return res
+      const success = await Reunion.cloture(req.params.id);
+      if (success) {
+        res.json({ success: true, message: "Réunion clôturée avec succès" });
+      } else {
+        res
           .status(404)
           .json({ success: false, message: "Réunion introuvable" });
       }
-
-      await Reunion.delete(id);
-      res.json({ success: true, message: "Réunion supprimée avec succès" });
     } catch (error) {
-      console.error("Erreur delete réunion:", error);
+      res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+  },
+
+  async delete(req, res) {
+    try {
+      const success = await Reunion.delete(req.params.id);
+      if (success) {
+        res.json({ success: true, message: "Réunion supprimée avec succès" });
+      } else {
+        res
+          .status(404)
+          .json({ success: false, message: "Réunion introuvable" });
+      }
+    } catch (error) {
       res.status(500).json({ success: false, message: "Erreur serveur" });
     }
   },

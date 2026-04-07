@@ -2,76 +2,17 @@ const API_URL = "http://localhost:3000/api";
 let listes = [];
 let tousLesMembres = [];
 
-// Charger les listes au chargement de la page
+// ==================== CHARGEMENT DE LA PAGE ====================
 window.addEventListener("DOMContentLoaded", () => {
   chargerListes();
   chargerMembres();
+
+  // Soumission du formulaire
+  const form = document.getElementById("listeForm");
+  if (form) form.addEventListener("submit", creerListe);
 });
 
-// Charger toutes les listes
-async function chargerListes() {
-  try {
-    const response = await fetch(`${API_URL}/listes-presence`);
-    const data = await response.json();
-
-    document.getElementById("loading").style.display = "none";
-
-    if (data.success && data.data.length > 0) {
-      listes = data.data;
-      afficherListes(listes);
-      document.getElementById("listesTable").style.display = "block";
-    } else {
-      document.getElementById("emptyState").style.display = "block";
-    }
-  } catch (error) {
-    console.error("Erreur lors du chargement des listes:", error);
-    document.getElementById("loading").style.display = "none";
-    afficherAlert("Erreur de connexion au serveur", "danger");
-  }
-}
-
-// Charger tous les membres
-async function chargerMembres() {
-  try {
-    const response = await fetch(`${API_URL}/membres`);
-    const data = await response.json();
-
-    if (data.success) {
-      tousLesMembres = data.data;
-    }
-  } catch (error) {
-    console.error("Erreur lors du chargement des membres:", error);
-  }
-}
-
-// Afficher les listes dans le tableau
-function afficherListes(listes) {
-  const tbody = document.getElementById("listesBody");
-  tbody.innerHTML = "";
-
-  listes.forEach((liste) => {
-    const date = new Date(liste.date_liste);
-    const dateFormatee = date.toLocaleDateString("fr-FR");
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-            <td><strong>${dateFormatee}</strong></td>
-            <td>${liste.titre || "Réunion"}</td>
-            <td>${liste.nombre_membres} membre(s)</td>
-            <td>
-                <button class="btn btn-sm btn-success" onclick="telechargerPDF(${
-                  liste.id
-                })">📥 Télécharger PDF</button>
-                <button class="btn btn-sm btn-danger" onclick="supprimerListe(${
-                  liste.id
-                })">🗑️ Supprimer</button>
-            </td>
-        `;
-    tbody.appendChild(tr);
-  });
-}
-
-// Ouvrir le modal de création
+// ====================== MODAL ======================
 function ouvrirModalCreation() {
   // Pré-remplir la date avec aujourd'hui
   const aujourdhui = new Date().toISOString().split("T")[0];
@@ -90,26 +31,27 @@ function ouvrirModalCreation() {
       const div = document.createElement("div");
       div.style.marginBottom = "10px";
       div.innerHTML = `
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" value="${membre.id}" style="margin-right: 10px; width: 18px; height: 18px;">
-                    <span><strong>${membre.nom} ${membre.prenom}</strong> - ${membre.numero}</span>
-                </label>
-            `;
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" value="${membre.id}" style="margin-right: 10px; width: 18px; height: 18px;">
+          <span><strong>${membre.nom} ${membre.prenom}</strong> - ${membre.numero}</span>
+        </label>
+      `;
       container.appendChild(div);
     });
   }
 
-  document.getElementById("modal").classList.add("show");
+  // Affichage du modal (CORRECTION)
+  document.getElementById("modal").style.display = "flex";
 }
 
-// Fermer le modal
 function fermerModal() {
-  document.getElementById("modal").classList.remove("show");
+  // Fermeture du modal (CORRECTION)
+  document.getElementById("modal").style.display = "none";
   document.getElementById("listeForm").reset();
 }
 
-// Soumettre le formulaire
-document.getElementById("listeForm").addEventListener("submit", async (e) => {
+// ====================== CRÉATION D'UNE LISTE ======================
+async function creerListe(e) {
   e.preventDefault();
 
   const dateListe = document.getElementById("dateListe").value;
@@ -117,7 +59,7 @@ document.getElementById("listeForm").addEventListener("submit", async (e) => {
 
   // Récupérer les membres cochés
   const checkboxes = document.querySelectorAll(
-    '#membresCheckboxes input[type="checkbox"]:checked'
+    '#membresCheckboxes input[type="checkbox"]:checked',
   );
   const membresIds = Array.from(checkboxes).map((cb) => parseInt(cb.value));
 
@@ -145,25 +87,84 @@ document.getElementById("listeForm").addEventListener("submit", async (e) => {
     if (data.success) {
       afficherAlert(data.message, "success");
       fermerModal();
-      // Recharger la page
       setTimeout(() => {
         location.reload();
-      }, 1500);
+      }, 1200);
     } else {
-      afficherAlert(data.message, "danger");
+      afficherAlert(data.message || "Erreur lors de la création", "danger");
     }
   } catch (error) {
     console.error("Erreur lors de la création:", error);
     afficherAlert("Erreur de connexion au serveur", "danger");
   }
-});
+}
 
-// Télécharger le PDF
+// ====================== CHARGER LES LISTES ======================
+async function chargerListes() {
+  try {
+    const response = await fetch(`${API_URL}/listes-presence`);
+    const data = await response.json();
+
+    document.getElementById("loading").style.display = "none";
+
+    if (data.success && data.data.length > 0) {
+      listes = data.data;
+      afficherListes(listes);
+      document.getElementById("listesTable").style.display = "block";
+      document.getElementById("emptyState").style.display = "none";
+    } else {
+      document.getElementById("listesTable").style.display = "none";
+      document.getElementById("emptyState").style.display = "block";
+    }
+  } catch (error) {
+    console.error("Erreur lors du chargement des listes:", error);
+    document.getElementById("loading").style.display = "none";
+    afficherAlert("Erreur de connexion au serveur", "danger");
+  }
+}
+
+// ====================== CHARGER LES MEMBRES ======================
+async function chargerMembres() {
+  try {
+    const response = await fetch(`${API_URL}/membres`);
+    const data = await response.json();
+
+    if (data.success) {
+      tousLesMembres = data.data;
+    }
+  } catch (error) {
+    console.error("Erreur lors du chargement des membres:", error);
+  }
+}
+
+// ====================== AFFICHAGE DU TABLEAU ======================
+function afficherListes(listes) {
+  const tbody = document.getElementById("listesBody");
+  tbody.innerHTML = "";
+
+  listes.forEach((liste) => {
+    const date = new Date(liste.date_liste);
+    const dateFormatee = date.toLocaleDateString("fr-FR");
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${dateFormatee}</strong></td>
+      <td>${liste.titre || "Réunion"}</td>
+      <td>${liste.nombre_membres} membre(s)</td>
+      <td>
+        <button class="btn btn-sm btn-success" onclick="telechargerPDF(${liste.id})">📥 Télécharger PDF</button>
+        <button class="btn btn-sm btn-danger" onclick="supprimerListe(${liste.id})">🗑️ Supprimer</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ====================== TÉLÉCHARGER PDF ======================
 async function telechargerPDF(listeId) {
   try {
     afficherAlert("Génération du PDF en cours...", "info");
 
-    // Récupérer les détails de la liste
     const response = await fetch(`${API_URL}/listes-presence/${listeId}`);
     const data = await response.json();
 
@@ -176,44 +177,34 @@ async function telechargerPDF(listeId) {
     const date = new Date(liste.date_liste);
     const dateFormatee = date.toLocaleDateString("fr-FR");
 
-    // Créer le PDF avec jsPDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // Titre du document
     doc.setFontSize(20);
     doc.setFont(undefined, "bold");
     doc.text("LISTE DE PRESENCE", 105, 20, { align: "center" });
 
-    // Date
     doc.setFontSize(12);
     doc.setFont(undefined, "normal");
     doc.text("Date : " + dateFormatee, 105, 30, { align: "center" });
 
-    // Titre de la réunion (si existe)
     if (liste.titre && liste.titre !== "Réunion") {
       doc.text(liste.titre, 105, 37, { align: "center" });
     }
 
-    // Ligne de séparation
     doc.setLineWidth(0.5);
     doc.line(20, 42, 190, 42);
 
-    // Position de départ
     let yPos = 52;
 
-    // Liste des membres
     doc.setFontSize(11);
     doc.setFont(undefined, "normal");
 
     liste.membres.forEach(function (membre, index) {
-      // Vérifier si on doit créer une nouvelle page
       if (yPos > 270) {
         doc.addPage();
         yPos = 20;
       }
-
-      // Numéro, nom, prénom et téléphone
       const texte =
         index +
         1 +
@@ -227,18 +218,15 @@ async function telechargerPDF(listeId) {
       yPos += 7;
     });
 
-    // Ligne de séparation finale
     yPos += 5;
     doc.setLineWidth(0.5);
     doc.line(20, yPos, 190, yPos);
     yPos += 7;
 
-    // Total
     doc.setFontSize(12);
     doc.setFont(undefined, "bold");
     doc.text("Total : " + liste.membres.length + " membres presents", 20, yPos);
 
-    // Sauvegarder le PDF
     const nomFichier = "liste_presence_" + liste.date_liste + ".pdf";
     doc.save(nomFichier);
 
@@ -249,7 +237,7 @@ async function telechargerPDF(listeId) {
   }
 }
 
-// Supprimer une liste
+// ====================== SUPPRIMER UNE LISTE ======================
 async function supprimerListe(id) {
   if (
     !confirm("Êtes-vous sûr de vouloir supprimer cette liste de présence ?")
@@ -276,7 +264,7 @@ async function supprimerListe(id) {
   }
 }
 
-// Afficher une alerte
+// ====================== ALERTES ======================
 function afficherAlert(message, type) {
   const alert = document.getElementById("alert");
   alert.className = `alert alert-${type} show`;
@@ -287,7 +275,7 @@ function afficherAlert(message, type) {
   }, 5000);
 }
 
-// Fermer le modal en cliquant à l'extérieur
+// ====================== FERMER MODAL EN CLIQUANT DEHORS ======================
 window.addEventListener("click", (e) => {
   const modal = document.getElementById("modal");
   if (e.target === modal) {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
@@ -20,24 +20,28 @@
           <li><a href="index.html">Accueil</a></li>
           <li><a href="membres.html">Membres</a></li>
           <li><a href="reunions.html">Réunions</a></li>
+          <li><a href="projets.html">Projets</a></li>
+          <li>
+            <a href="cotisations-special.html">Cotisations Spéciales</a>
+          </li>
+          <li><a href="listes-presence.html">Listes de présence</a></li>
           <li><a href="rapports.html">Rapports</a></li>
         </ul>
       </nav>
 
       <!-- Content -->
       <div class="content">
-        <!-- Alerts -->
+        <!-- Alert -->
         <div id="alert" class="alert"></div>
 
         <!-- Boutons d'action -->
-        <div class="d-flex actions-rapides">
-          >
-          <h2>Cotisations et présences</h2>
-          <div class="d-flex actions-rapides">
-            >
+        <div class="d-flex justify-between align-center mb-20">
+          <h2>Cotisations de la réunion</h2>
+          <div>
+            <!--
             <button class="btn btn-info" onclick="ouvrirModalConfiguration()">
               ⚙️ Configuration
-            </button>
+            </button> -->
             <button
               class="btn btn-warning"
               id="btnCloture"
@@ -48,33 +52,13 @@
           </div>
         </div>
 
-        <!-- Totaux -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <h3 id="totalMensuelle">0 FCFA</h3>
-            <p>Cotisations mensuelles</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="totalSpeciale">0 FCFA</h3>
-            <p>Cotisations spéciales</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="totalPenalite">0 FCFA</h3>
-            <p>Pénalités</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="totalGeneral">0 FCFA</h3>
-            <p>Total général</p>
-          </div>
-        </div>
-
         <!-- Loading -->
         <div id="loading" class="loading">
           <div class="spinner"></div>
           <p>Chargement des cotisations...</p>
         </div>
 
-        <!-- Table des cotisations -->
+        <!-- Table des cotisations (simplifiée) -->
         <div id="cotisationsTable">
           <div class="table-container">
             <table>
@@ -82,17 +66,13 @@
                 <tr>
                   <th>Membre</th>
                   <th>Numéro</th>
-                  <th>Présent</th>
                   <th>Cotisation mensuelle</th>
-                  <th>Cotisation spéciale</th>
                   <th>Pénalité</th>
                   <th>Total</th>
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="cotisationsBody">
-                <!-- Les cotisations seront ajoutées ici -->
-              </tbody>
+              <tbody id="cotisationsBody"></tbody>
             </table>
           </div>
         </div>
@@ -108,7 +88,7 @@
       </div>
     </div>
 
-    <!-- Modal Modifier Cotisation -->
+    <!-- Modal Modifier Cotisation (sans cotisation spéciale) -->
     <div id="modalCotisation" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -124,18 +104,6 @@
             <input
               type="number"
               id="cotisationMensuelle"
-              class="form-control"
-              min="0"
-              step="100"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="cotisationSpeciale">Cotisation spéciale (FCFA)</label>
-            <input
-              type="number"
-              id="cotisationSpeciale"
               class="form-control"
               min="0"
               step="100"
@@ -169,7 +137,7 @@
       </div>
     </div>
 
-    <!-- Modal Configuration -->
+    <!-- Modal Configuration (sans cotisation spéciale) -->
     <div id="modalConfig" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -183,20 +151,6 @@
             <input
               type="number"
               id="configMensuelle"
-              class="form-control"
-              min="0"
-              step="100"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="configSpeciale"
-              >Cotisation spéciale par défaut (FCFA)</label
-            >
-            <input
-              type="number"
-              id="configSpeciale"
               class="form-control"
               min="0"
               step="100"
@@ -220,8 +174,7 @@
 
           <div class="alert alert-warning show">
             <strong>⚠️ Attention :</strong> Ces valeurs seront utilisées pour
-            les prochaines réunions. Les réunions existantes ne seront pas
-            modifiées.
+            les prochaines réunions.
           </div>
 
           <div class="modal-footer">

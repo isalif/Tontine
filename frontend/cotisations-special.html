@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cotisations Spéciales - Tontine</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>💰 Cotisations Spéciales</h1>
+        <p>Gérer les cotisations spéciales payées par les membres</p>
+      </div>
+
+      <nav class="nav">
+        <ul>
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="membres.html">Membres</a></li>
+          <li><a href="reunions.html">Réunions</a></li>
+          <li><a href="projets.html">Projets</a></li>
+          <li>
+            <a href="cotisations-special.html" class="active"
+              >Cotisations Spéciales</a
+            >
+          </li>
+          <li><a href="listes-presence.html">Listes de présence</a></li>
+          <li><a href="rapports.html">Rapports</a></li>
+        </ul>
+      </nav>
+
+      <div class="content">
+        <div id="alert" class="alert"></div>
+
+        <div class="d-flex justify-between align-center mb-20">
+          <h2>Liste des cotisations spéciales</h2>
+          <button class="btn btn-primary" onclick="ouvrirModalAjout()">
+            ➕ Nouvelle cotisation
+          </button>
+        </div>
+
+        <div class="form-group">
+          <input
+            type="text"
+            id="filtreInput"
+            class="form-control"
+            placeholder="🔍 Rechercher par membre ou montant..."
+            oninput="filtrerCotisations()"
+          />
+        </div>
+
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Chargement des cotisations spéciales...</p>
+        </div>
+
+        <div id="cotisationsTable">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Membre</th>
+                  <th>Montant</th>
+                  <th>Date de paiement</th>
+                  <th>Projet lié</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="cotisationsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+          <h3>Aucune cotisation spéciale</h3>
+          <p>Commencez par ajouter votre première cotisation spéciale</p>
+          <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()">
+            ➕ Ajouter la première
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Ajout / Modification -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Nouvelle cotisation spéciale</h2>
+        </div>
+        <form id="cotisationForm">
+          <input type="hidden" id="cotisationId" />
+
+          <div class="form-group">
+            <label for="membreId">Membre *</label>
+            <select id="membreId" class="form-control" required></select>
+          </div>
+
+          <div class="form-group">
+            <label for="projetId">Projet lié (optionnel)</label>
+            <select id="projetId" class="form-control">
+              <option value="">-- Aucun projet --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="montant">Montant (FCFA) *</label>
+            <input
+              type="number"
+              id="montant"
+              class="form-control"
+              min="0"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="datePaiement">Date de paiement *</label>
+            <input
+              type="date"
+              id="datePaiement"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="statut">Statut *</label>
+            <select id="statut" class="form-control">
+              <option value="payee">🟢 Payée</option>
+              <option value="en_attente">🟡 En attente</option>
+              <option value="annule">🔴 Annulée</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="note">Note</label>
+            <textarea id="note" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="fermerModal()"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="js/cotisations-special.js"></script>
+  </body>
+</html>

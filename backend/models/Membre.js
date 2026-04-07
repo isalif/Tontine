@@ -4,7 +4,7 @@ class Membre {
   // Récupérer tous les membres actifs
   static async getAll() {
     const [rows] = await db.query(
-      "SELECT * FROM membres WHERE actif = TRUE ORDER BY nom, prenom"
+      "SELECT * FROM membres WHERE actif = TRUE ORDER BY nom, prenom",
     );
     return rows;
   }
@@ -29,69 +29,42 @@ class Membre {
     return rows.length > 0;
   }
 
-  // Ajouter un nouveau membre
-  static async create(
-    nom,
-    prenom,
-    numero,
-    abonneAnnuel = false,
-    cotisationSpecialePayee = false
-  ) {
-    const dateAjout = new Date().toISOString().split("T")[0]; // Format YYYY-MM-DD
+  // Créer un nouveau membre (sans cotisation spéciale)
+  static async create(nom, prenom, numero, abonneAnnuel = false) {
     const [result] = await db.query(
-      "INSERT INTO membres (nom, prenom, numero, date_ajout, actif, abonne_annuel, cotisation_speciale_payee) VALUES (?, ?, ?, ?, TRUE, ?, ?)",
-      [
-        nom.trim(),
-        prenom.trim(),
-        numero.trim(),
-        dateAjout,
-        abonneAnnuel,
-        cotisationSpecialePayee,
-      ]
+      `INSERT INTO membres 
+       (nom, prenom, numero, actif, abonne_annuel) 
+       VALUES (?, ?, ?, TRUE, ?)`,
+      [nom.trim(), prenom.trim(), numero.trim(), abonneAnnuel],
     );
     return result.insertId;
   }
 
   // Modifier un membre
-  static async update(
-    id,
-    nom,
-    prenom,
-    numero,
-    abonneAnnuel = false,
-    cotisationSpecialePayee = false
-  ) {
+  static async update(id, nom, prenom, numero, abonneAnnuel = false) {
     const [result] = await db.query(
-      "UPDATE membres SET nom = ?, prenom = ?, numero = ?, abonne_annuel = ?, cotisation_speciale_payee = ? WHERE id = ?",
-      [
-        nom.trim(),
-        prenom.trim(),
-        numero.trim(),
-        abonneAnnuel,
-        cotisationSpecialePayee,
-        id,
-      ]
+      `UPDATE membres 
+       SET nom = ?, prenom = ?, numero = ?, abonne_annuel = ? 
+       WHERE id = ?`,
+      [nom.trim(), prenom.trim(), numero.trim(), abonneAnnuel, id],
     );
     return result.affectedRows > 0;
   }
 
-  // Supprimer un membre (HARD DELETE - suppression définitive avec vérification)
+  // Supprimer un membre
   static async delete(id) {
     try {
-      // Vérifier si le membre a des cotisations
       const [cotisations] = await db.query(
         "SELECT COUNT(*) as total FROM cotisations WHERE membre_id = ?",
-        [id]
+        [id],
       );
 
       if (cotisations[0].total > 0) {
-        // Le membre a des cotisations → On ne peut pas le supprimer
         throw new Error(
-          "Impossible de supprimer ce membre car il a participé à des réunions. Supprimez d'abord les réunions concernées."
+          "Impossible de supprimer ce membre car il a des cotisations associées. Supprimez d'abord les cotisations concernées.",
         );
       }
 
-      // Aucune cotisation → On peut supprimer définitivement
       const [result] = await db.query("DELETE FROM membres WHERE id = ?", [id]);
       return result.affectedRows > 0;
     } catch (error) {
@@ -99,10 +72,10 @@ class Membre {
     }
   }
 
-  // Compter le nombre de membres actifs
+  // Compter les membres actifs
   static async count() {
     const [rows] = await db.query(
-      "SELECT COUNT(*) as total FROM membres WHERE actif = TRUE"
+      "SELECT COUNT(*) as total FROM membres WHERE actif = TRUE",
     );
     return rows[0].total;
   }

@@ -8,29 +8,26 @@
   </head>
   <body>
     <div class="container">
-      <!-- Header -->
       <div class="header">
         <h1>👥 Gestion des Membres</h1>
         <p>Ajouter, modifier ou supprimer des membres</p>
       </div>
 
-      <!-- Navigation -->
       <nav class="nav">
         <ul>
           <li><a href="index.html">Accueil</a></li>
           <li><a href="membres.html" class="active">Membres</a></li>
           <li><a href="reunions.html">Réunions</a></li>
+          <li><a href="projets.html">Projets</a></li>
+          <li><a href="cotisations-special.html">Cotisations Spéciales</a></li>
           <li><a href="listes-presence.html">Listes de présence</a></li>
           <li><a href="rapports.html">Rapports</a></li>
         </ul>
       </nav>
 
-      <!-- Content -->
       <div class="content">
-        <!-- Alerts -->
         <div id="alert" class="alert"></div>
 
-        <!-- Bouton Ajouter -->
         <div class="d-flex justify-between align-center mb-20">
           <h2>Liste des membres</h2>
           <button class="btn btn-primary" onclick="ouvrirModalAjout()">
@@ -38,7 +35,6 @@
           </button>
         </div>
 
-        <!-- ✅ Filtre -->
         <div class="form-group">
           <input
             type="text"
@@ -49,13 +45,11 @@
           />
         </div>
 
-        <!-- Loading -->
         <div id="loading" class="loading">
           <div class="spinner"></div>
           <p>Chargement des membres...</p>
         </div>
 
-        <!-- Table des membres -->
         <div id="membresTable">
           <div class="table-container">
             <table>
@@ -64,18 +58,15 @@
                   <th>Nom</th>
                   <th>Prénom</th>
                   <th>Numéro</th>
-                  <th>Date d'ajout</th>
+                  <th>Mode de cotisation</th>
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="membresBody">
-                <!-- Les membres seront ajoutés ici -->
-              </tbody>
+              <tbody id="membresBody"></tbody>
             </table>
           </div>
         </div>
 
-        <!-- Empty State -->
         <div id="emptyState" class="empty-state">
           <h3>Aucun membre</h3>
           <p>Commencez par ajouter votre premier membre</p>
@@ -115,29 +106,18 @@
               placeholder="+227 XX XX XX XX"
             />
           </div>
+
           <div class="form-group">
             <label>
               <input type="checkbox" id="abonneAnnuel" />
-              <span
-                ><strong>Abonné annuel</strong> (a payé d'avance pour toute
-                l'année)</span
-              >
+              <span><strong>Abonné annuel</strong></span>
             </label>
             <small
               >Cochez si ce membre a déjà payé toutes les cotisations de
               l'année.</small
             >
           </div>
-          <div class="form-group">
-            <label>
-              <input type="checkbox" id="cotisationSpecialePayee" />
-              <span><strong>Cotisation spéciale payée</strong></span>
-            </label>
-            <small
-              >Cochez si ce membre a déjà payé la cotisation spéciale
-              d'avance.</small
-            >
-          </div>
+
           <div class="modal-footer">
             <button
               type="button"
@@ -152,9 +132,41 @@
       </div>
     </div>
 
+    <!-- Modal Confirmation Suppression -->
+    <div id="modalConfirmDelete" class="modal">
+      <div class="modal-content" style="max-width: 420px">
+        <div class="modal-header">
+          <h2>🗑️ Confirmation</h2>
+        </div>
+        <div class="modal-body" style="padding: 25px; text-align: center">
+          <p id="deleteMessage" style="font-size: 1.1rem">
+            Voulez-vous vraiment supprimer ce membre ?
+          </p>
+          <p style="color: #5c4343; margin-top: 10px; font-weight: 600">
+            Cette action est irréversible.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="fermerModalConfirmDelete()"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            onclick="confirmerSuppression()"
+          >
+            Oui, supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="js/membres.js"></script>
 
-    <!-- ✅ Fonction filtre -->
     <script>
       function filtrerMembres() {
         const recherche = document

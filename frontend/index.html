@@ -3,175 +3,201 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestion de Tontine - Accueil</title>
+    <title>💰 Gestion de Ressortissant de Kalfou (Niamey)</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <div class="container">
       <!-- Header -->
       <div class="header">
-        <h1>💰 Gestion de Ressortissant de Kalfou(Niamey)</h1>
+        <h1>💰 Gestion de Ressortissant de Kalfou (Niamey)</h1>
         <p>Application de gestion des cotisations mensuelles</p>
       </div>
 
       <!-- Navigation -->
-      <nav class="nav">
+      <div class="nav">
         <ul>
-          <li><a href="index.html" class="active">Accueil</a></li>
+          <li><a href="/" class="active">Accueil</a></li>
           <li><a href="membres.html">Membres</a></li>
           <li><a href="reunions.html">Réunions</a></li>
           <li><a href="projets.html">Projets</a></li>
-          <li>
-            <a href="cotisations-special.html">Cotisations Spéciales</a>
-          </li>
+          <li><a href="cotisations-special.html">Cotisations Spéciales</a></li>
           <li><a href="listes-presence.html">Listes de présence</a></li>
-          <li><a href="rapports.html">Rapports</a></li>
         </ul>
-      </nav>
+      </div>
 
-      <!-- Content -->
       <div class="content">
         <h2>Tableau de bord</h2>
 
-        <!-- Statistiques -->
+        <!-- Statistiques globales -->
         <div class="stats-grid">
           <div class="stat-card">
-            <h3 id="totalMembres">0</h3>
+            <h3 id="membresActifs">0</h3>
             <p>Membres actifs</p>
           </div>
           <div class="stat-card">
-            <h3 id="totalReunions">0</h3>
+            <h3 id="reunionsTotal">0</h3>
             <p>Réunions organisées</p>
           </div>
           <div class="stat-card">
-            <h3 id="reunionEnCours">0</h3>
+            <h3 id="reunionsEnCours">0</h3>
             <p>Réunions en cours</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="totalProjets">0</h3>
+            <p>Projets totaux</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="projetsEnCoursStat">0</h3>
+            <p>Projets en cours</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="projetsTermines">0</h3>
+            <p>Projets terminés</p>
+          </div>
+        </div>
+
+        <!-- Détails du projet sélectionné -->
+        <div class="card">
+          <div class="card-title d-flex justify-between align-center">
+            <span>📊 Projet sélectionné</span>
+            <select
+              id="projetSelect"
+              class="form-control"
+              style="width: auto; max-width: 320px"
+            ></select>
+          </div>
+          <div id="projetDetails" class="card-body">
+            <!-- Rempli par JS -->
           </div>
         </div>
 
         <!-- Actions rapides -->
         <div class="card">
-          <h3 class="card-title">Actions rapides</h3>
-          <div class="card-body">
-            <div class="d-flex gap-10">
-              <a href="membres.html" class="btn btn-primary"
-                >👥 Gérer les membres</a
-              >
-              <a href="reunions.html" class="btn btn-success"
-                >📅 Nouvelle réunion</a
-              >
-              <a href="rapports.html" class="btn btn-info"
-                >📊 Consulter les rapports</a
-              >
-            </div>
+          <div class="card-title">Actions rapides</div>
+          <div class="d-flex gap-10 actions-rapides">
+            <a href="/membres" class="btn btn-primary">👥 Gérer les membres</a>
+            <a href="/reunions" class="btn btn-success">📅 Nouvelle réunion</a>
+            <a href="/projets" class="btn btn-info">📋 Gérer les projets</a>
           </div>
         </div>
 
-        <!-- Dernières réunions -->
-        <div class="card mt-20">
-          <h3 class="card-title">Dernières réunions</h3>
-          <div class="card-body">
-            <div id="loadingReunions" class="loading">
-              <div class="spinner"></div>
-              <p>Chargement des réunions...</p>
-            </div>
-            <div id="dernieresReunions"></div>
-            <div id="emptyReunions" class="empty-state">
-              <h3>Aucune réunion</h3>
-              <p>Commencez par créer votre première réunion</p>
-              <a href="reunions.html" class="btn btn-primary mt-20"
-                >Créer une réunion</a
-              >
-            </div>
-          </div>
+        <!-- Dernières réunions (conservé) -->
+        <div class="card">
+          <div class="card-title">Dernières réunions</div>
+          <div id="dernieresReunions">Chargement des réunions...</div>
         </div>
       </div>
     </div>
 
     <script>
-      const API_URL = "http://localhost:3000/api";
+      const API = "http://localhost:3000/api";
 
-      // Charger les statistiques au chargement de la page
-      window.addEventListener("DOMContentLoaded", () => {
-        chargerStatistiques();
-        chargerDernieresReunions();
-      });
-
-      // Charger les statistiques
-      async function chargerStatistiques() {
+      async function chargerDashboard() {
         try {
-          // Nombre de membres
-          const resMembres = await fetch(`${API_URL}/membres/count`);
-          const dataMembres = await resMembres.json();
-          if (dataMembres.success) {
-            document.getElementById("totalMembres").textContent =
-              dataMembres.data.total;
-          }
+          // Membres
+          const resM = await fetch(`${API}/membres/count`);
+          const dataM = await resM.json();
+          document.getElementById("membresActifs").textContent = dataM.success
+            ? dataM.data.total
+            : 0;
 
-          // Nombre de réunions
-          const resReunions = await fetch(`${API_URL}/reunions`);
-          const dataReunions = await resReunions.json();
-          if (dataReunions.success) {
-            const reunions = dataReunions.data;
-            document.getElementById("totalReunions").textContent =
+          // Réunions
+          const resR = await fetch(`${API}/reunions`);
+          const dataR = await resR.json();
+          if (dataR.success) {
+            const reunions = dataR.data;
+            document.getElementById("reunionsTotal").textContent =
               reunions.length;
-
-            // Réunions en cours
-            const enCours = reunions.filter(
+            const enCoursR = reunions.filter(
               (r) => r.statut === "en_cours",
             ).length;
-            document.getElementById("reunionEnCours").textContent = enCours;
+            document.getElementById("reunionsEnCours").textContent = enCoursR;
           }
-        } catch (error) {
-          console.error("Erreur lors du chargement des statistiques:", error);
-        }
-      }
 
-      // Charger les dernières réunions
-      async function chargerDernieresReunions() {
-        try {
-          const response = await fetch(`${API_URL}/reunions`);
-          const data = await response.json();
+          // Projets
+          const resP = await fetch(`${API}/projets`);
+          const dataP = await resP.json();
+          if (dataP.success) {
+            const projets = dataP.data;
 
-          document.getElementById("loadingReunions").style.display = "none";
+            // Stats globales projets
+            document.getElementById("totalProjets").textContent =
+              projets.length;
+            const enCoursP = projets.filter(
+              (p) => p.statut === "en_cours",
+            ).length;
+            const terminesP = projets.filter(
+              (p) => p.statut === "termine",
+            ).length;
+            document.getElementById("projetsEnCoursStat").textContent =
+              enCoursP;
+            document.getElementById("projetsTermines").textContent = terminesP;
 
-          if (data.success && data.data.length > 0) {
-            const reunions = data.data.slice(0, 5); // 5 dernières
-            let html =
-              "<table><thead><tr><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>";
+            // Select projet (tri par date création DESC)
+            const select = document.getElementById("projetSelect");
+            select.innerHTML =
+              '<option value="">-- Sélectionner un projet --</option>';
+            projets.sort(
+              (a, b) => new Date(b.date_creation) - new Date(a.date_creation),
+            );
 
-            reunions.forEach((reunion) => {
-              const date = new Date(reunion.date_reunion);
-              const dateFormatee = date.toLocaleDateString("fr-FR");
-              const statutBadge =
-                reunion.statut === "en_cours"
-                  ? '<span style="color: #28a745; font-weight: bold;">En cours</span>'
-                  : '<span style="color: #6c757d; font-weight: bold;">Clôturée</span>';
-
-              html += `
-                            <tr>
-                                <td>${dateFormatee}</td>
-                                <td>${statutBadge}</td>
-                                <td>
-                                    <a href="cotisations.html?reunion=${reunion.id}" class="btn btn-sm btn-info">Voir détails</a>
-                                </td>
-                            </tr>
-                        `;
+            projets.forEach((p) => {
+              const opt = document.createElement("option");
+              opt.value = p.id;
+              opt.textContent = `${p.nom} (${p.statut === "en_cours" ? "En cours" : p.statut})`;
+              select.appendChild(opt);
             });
 
-            html += "</tbody></table>";
-            document.getElementById("dernieresReunions").innerHTML = html;
-            document.getElementById("dernieresReunions").style.display =
-              "block";
-          } else {
-            document.getElementById("emptyReunions").style.display = "block";
+            // Par défaut : dernier projet en cours
+            const defaultProj =
+              projets.find((p) => p.statut === "en_cours") || projets[0];
+            if (defaultProj) {
+              select.value = defaultProj.id;
+              afficherDetailsProjet(defaultProj);
+            }
+
+            select.addEventListener("change", () => {
+              const proj = projets.find((p) => p.id == select.value);
+              if (proj) afficherDetailsProjet(proj);
+            });
           }
-        } catch (error) {
-          console.error("Erreur lors du chargement des réunions:", error);
-          document.getElementById("loadingReunions").style.display = "none";
-          document.getElementById("emptyReunions").style.display = "block";
+        } catch (e) {
+          console.error("Erreur chargement dashboard", e);
         }
       }
+
+      function afficherDetailsProjet(p) {
+        const cible = Number(p.montant_cible || 0).toLocaleString("fr-FR");
+        const collecte = Number(p.montant_collecte || 0).toLocaleString(
+          "fr-FR",
+        );
+        const restant = Math.max(
+          0,
+          Number(p.montant_cible || 0) - Number(p.montant_collecte || 0),
+        ).toLocaleString("fr-FR");
+
+        document.getElementById("projetDetails").innerHTML = `
+        <h3>${p.nom}</h3>
+        <p><strong>Description :</strong> ${p.description || "—"}</p>
+        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;">
+          <div style="background:#f0f4ff;padding:15px;border-radius:10px;text-align:center;">
+            <small>Cible</small>
+            <h3 style="color:#667eea;margin:8px 0 0;">${cible} FCFA</h3>
+          </div>
+          <div style="background:#f0fdf4;padding:15px;border-radius:10px;text-align:center;">
+            <small>Collecté</small>
+            <h3 style="color:#28a745;margin:8px 0 0;">${collecte} FCFA</h3>
+          </div>
+          <div style="background:#fff4f0;padding:15px;border-radius:10px;text-align:center;">
+            <small>Restant</small>
+            <h3 style="color:#dc3545;margin:8px 0 0;">${restant} FCFA</h3>
+          </div>
+        </div>
+      `;
+      }
+
+      window.addEventListener("DOMContentLoaded", chargerDashboard);
     </script>
   </body>
 </html>

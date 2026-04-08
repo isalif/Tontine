@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mysql -u root --password=\"\" tontine_db -e \"ALTER TABLE listes_presence ADD COLUMN reunion_id INT DEFAULT NULL AFTER id, ADD CONSTRAINT fk_lp_reunion FOREIGN KEY \\(reunion_id\\) REFERENCES reunions\\(id\\) ON DELETE CASCADE;\")",
+      "Bash(mysql -u root --password=\"\" tontine_db -e \"DESCRIBE listes_presence;\")"
+    ]
+  }
+}

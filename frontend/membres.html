@@ -58,6 +58,7 @@
                   <th>Prénom</th>
                   <th>Numéro</th>
                   <th>Mode de cotisation</th>
+                  <th>Statut</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -111,10 +112,20 @@
               <input type="checkbox" id="abonneAnnuel" />
               <span><strong>Abonné annuel</strong></span>
             </label>
-            <small
-              >Cochez si ce membre a déjà payé toutes les cotisations de
-              l'année.</small
-            >
+            <small>Cochez si ce membre a déjà payé toutes les cotisations de l'année.</small>
+          </div>
+
+          <div class="form-group">
+            <p class="toggle-group-label"><strong>Statut du membre</strong></p>
+            <div class="toggle-wrapper">
+              <input type="checkbox" id="actif" checked aria-label="Membre actif" />
+              <label class="toggle-label" for="actif">
+                <span class="track"></span>
+                <span class="thumb"></span>
+              </label>
+              <span class="toggle-text" id="actifLabel">Actif</span>
+            </div>
+            <small>Désactivez pour que ce membre n'apparaisse plus dans les réunions.</small>
           </div>
 
           <div class="modal-footer">
@@ -133,17 +144,15 @@
 
     <!-- Modal Confirmation Suppression -->
     <div id="modalConfirmDelete" class="modal">
-      <div class="modal-content" style="max-width: 420px">
+      <div class="modal-content modal-small">
         <div class="modal-header">
           <h2>🗑️ Confirmation</h2>
         </div>
-        <div class="modal-body" style="padding: 25px; text-align: center">
-          <p id="deleteMessage" style="font-size: 1.1rem">
+        <div class="modal-body modal-body-center">
+          <p id="deleteMessage" class="text-lg">
             Voulez-vous vraiment supprimer ce membre ?
           </p>
-          <p style="color: #5c4343; margin-top: 10px; font-weight: 600">
-            Cette action est irréversible.
-          </p>
+          <p class="text-warning mt-10">Cette action est irréversible.</p>
         </div>
         <div class="modal-footer">
           <button

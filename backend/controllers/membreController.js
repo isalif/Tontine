@@ -29,7 +29,8 @@ const validateMembre = (nom, prenom, numero) => {
 const membreController = {
   async getAll(req, res) {
     try {
-      const membres = await Membre.getAll();
+      const includeInactive = req.query.all === "true";
+      const membres = await Membre.getAll(includeInactive);
       res.json({ success: true, data: membres });
     } catch (error) {
       console.error("Erreur getAll membres:", error);
@@ -115,8 +116,9 @@ const membreController = {
       }
 
       const abonneAnnuel = req.body.abonne_annuel || false;
+      const actif = req.body.actif !== undefined ? req.body.actif : true;
 
-      await Membre.update(id, nom, prenom, numero, abonneAnnuel);
+      await Membre.update(id, nom, prenom, numero, abonneAnnuel, actif);
       const updatedMembre = await Membre.getById(id);
 
       res.json({
@@ -150,6 +152,23 @@ const membreController = {
         return res.status(400).json({ success: false, message: error.message });
       }
 
+      res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+  },
+
+  async toggleActif(req, res) {
+    try {
+      const { id } = req.params;
+      const membreExists = await Membre.getById(id);
+      if (!membreExists) {
+        return res.status(404).json({ success: false, message: "Membre introuvable" });
+      }
+      await Membre.toggleActif(id);
+      const updated = await Membre.getById(id);
+      const statut = updated.actif ? "actif" : "inactif";
+      res.json({ success: true, message: `Membre marqué comme ${statut}`, data: updated });
+    } catch (error) {
+      console.error("Erreur toggleActif membre:", error);
       res.status(500).json({ success: false, message: "Erreur serveur" });
     }
   },

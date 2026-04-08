@@ -88,28 +88,20 @@
         </div>
         <form id="listeForm">
           <div class="form-group">
-            <label for="dateListe">Date de la réunion *</label>
-            <input type="date" id="dateListe" class="form-control" required />
+            <label for="reunionSelect">Réunion *</label>
+            <select id="reunionSelect" class="form-control" required onchange="onReunionChange()">
+              <option value="">-- Sélectionnez une réunion --</option>
+            </select>
           </div>
 
-          <div class="form-group">
-            <label for="titreListe">Titre (optionnel)</label>
-            <input
-              type="text"
-              id="titreListe"
-              class="form-control"
-              placeholder="Ex: Réunion mensuelle"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Sélectionnez les membres présents *</label>
-            <div id="membresCheckboxes">
-              <!-- Les checkboxes seront ajoutées ici -->
+          <div id="membresSection" class="hidden">
+            <div class="form-group">
+              <label>Marquez les membres présents *</label>
+              <div id="membresCheckboxes">
+                <!-- Les checkboxes seront ajoutées ici -->
+              </div>
+              <small>Cochez les membres présents, laissez décoché pour les absents</small>
             </div>
-            <small
-              >Cochez les membres qui étaient présents à cette réunion</small
-            >
           </div>
           <div class="modal-footer">
             <button

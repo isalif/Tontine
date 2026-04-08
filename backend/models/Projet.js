@@ -8,9 +8,16 @@ class Projet {
         COALESCE(pc.montant_par_reunion, 5000) AS montant_par_reunion,
         COALESCE(pc.montant_annuel, 60000) AS montant_annuel,
         COALESCE(pc.penalite_retard, 1000) AS penalite_retard,
-        (SELECT COALESCE(SUM(cs.montant), 0) 
-         FROM cotisations_speciales cs 
-         WHERE cs.projet_id = p.id) AS montant_collecte
+        (
+          SELECT COALESCE(SUM(cs.montant), 0)
+          FROM cotisations_speciales cs
+          WHERE cs.projet_id = p.id AND cs.statut != 'annule'
+        ) + (
+          SELECT COALESCE(SUM(c.cotisation_mensuelle), 0)
+          FROM cotisations c
+          JOIN reunions r ON r.id = c.reunion_id
+          WHERE r.projet_id = p.id
+        ) AS montant_collecte
       FROM projets p
       LEFT JOIN projet_configurations pc ON pc.projet_id = p.id
       ORDER BY p.date_creation DESC
@@ -26,9 +33,16 @@ class Projet {
         COALESCE(pc.montant_par_reunion, 5000) AS montant_par_reunion,
         COALESCE(pc.montant_annuel, 60000) AS montant_annuel,
         COALESCE(pc.penalite_retard, 1000) AS penalite_retard,
-        (SELECT COALESCE(SUM(cs.montant), 0) 
-         FROM cotisations_speciales cs 
-         WHERE cs.projet_id = p.id) AS montant_collecte
+        (
+          SELECT COALESCE(SUM(cs.montant), 0)
+          FROM cotisations_speciales cs
+          WHERE cs.projet_id = p.id AND cs.statut != 'annule'
+        ) + (
+          SELECT COALESCE(SUM(c.cotisation_mensuelle), 0)
+          FROM cotisations c
+          JOIN reunions r ON r.id = c.reunion_id
+          WHERE r.projet_id = p.id
+        ) AS montant_collecte
       FROM projets p
       LEFT JOIN projet_configurations pc ON pc.projet_id = p.id
       WHERE p.id = ?

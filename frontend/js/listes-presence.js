@@ -1,26 +1,61 @@
 const API_URL = "http://localhost:3000/api";
 let listes = [];
 let tousLesMembres = [];
+let toutesLesReunions = [];
 
 // ==================== CHARGEMENT DE LA PAGE ====================
 window.addEventListener("DOMContentLoaded", () => {
   chargerListes();
   chargerMembres();
+  chargerReunions();
 
-  // Soumission du formulaire
   const form = document.getElementById("listeForm");
   if (form) form.addEventListener("submit", creerListe);
 });
 
 // ====================== MODAL ======================
 function ouvrirModalCreation() {
-  // Pré-remplir la date avec aujourd'hui
-  const aujourdhui = new Date().toISOString().split("T")[0];
-  document.getElementById("dateListe").value = aujourdhui;
-  document.getElementById("titreListe").value = "";
+  // Remplir le select des réunions
+  const select = document.getElementById("reunionSelect");
+  select.innerHTML = '<option value="">-- Sélectionnez une réunion --</option>';
 
-  // Afficher les checkboxes des membres
+  if (toutesLesReunions.length === 0) {
+    const opt = document.createElement("option");
+    opt.disabled = true;
+    opt.textContent = "Aucune réunion disponible";
+    select.appendChild(opt);
+  } else {
+    toutesLesReunions.forEach((reunion) => {
+      const date = new Date(reunion.date_reunion).toLocaleDateString("fr-FR");
+      const label = reunion.titre ? `${date} - ${reunion.titre}` : date;
+      const opt = document.createElement("option");
+      opt.value = reunion.id;
+      opt.dataset.date = reunion.date_reunion;
+      opt.dataset.titre = reunion.titre || "Réunion";
+      opt.textContent = label;
+      select.appendChild(opt);
+    });
+  }
+
+  // Masquer la section membres jusqu'à ce qu'une réunion soit choisie
+  document.getElementById("membresSection").classList.add("hidden");
+  document.getElementById("membresCheckboxes").innerHTML = "";
+
+  document.getElementById("modal").style.display = "flex";
+}
+
+function onReunionChange() {
+  const select = document.getElementById("reunionSelect");
+  const membresSection = document.getElementById("membresSection");
   const container = document.getElementById("membresCheckboxes");
+
+  if (!select.value) {
+    membresSection.classList.add("hidden");
+    container.innerHTML = "";
+    return;
+  }
+
+  // Afficher tous les membres avec cases à cocher
   container.innerHTML = "";
 
   if (tousLesMembres.length === 0) {
@@ -40,32 +75,39 @@ function ouvrirModalCreation() {
     });
   }
 
-  // Affichage du modal (CORRECTION)
-  document.getElementById("modal").style.display = "flex";
+  membresSection.classList.remove("hidden");
 }
 
 function fermerModal() {
-  // Fermeture du modal (CORRECTION)
   document.getElementById("modal").style.display = "none";
   document.getElementById("listeForm").reset();
+  document.getElementById("membresSection").classList.add("hidden");
+  document.getElementById("membresCheckboxes").innerHTML = "";
 }
 
 // ====================== CRÉATION D'UNE LISTE ======================
 async function creerListe(e) {
   e.preventDefault();
 
-  const dateListe = document.getElementById("dateListe").value;
-  const titre = document.getElementById("titreListe").value || "Réunion";
+  const select = document.getElementById("reunionSelect");
+  const selectedOption = select.options[select.selectedIndex];
 
-  // Récupérer les membres cochés
+  if (!select.value) {
+    afficherAlert("Veuillez sélectionner une réunion", "danger");
+    return;
+  }
+
+  const dateListe = selectedOption.dataset.date;
+  const titre = selectedOption.dataset.titre;
+
+  // Récupérer les membres cochés (présents)
   const checkboxes = document.querySelectorAll(
     '#membresCheckboxes input[type="checkbox"]:checked',
   );
   const membresIds = Array.from(checkboxes).map((cb) => parseInt(cb.value));
 
-  // Validation
   if (membresIds.length === 0) {
-    afficherAlert("Veuillez sélectionner au moins un membre", "danger");
+    afficherAlert("Veuillez sélectionner au moins un membre présent", "danger");
     return;
   }
 
@@ -134,6 +176,20 @@ async function chargerMembres() {
     }
   } catch (error) {
     console.error("Erreur lors du chargement des membres:", error);
+  }
+}
+
+// ====================== CHARGER LES RÉUNIONS ======================
+async function chargerReunions() {
+  try {
+    const response = await fetch(`${API_URL}/reunions`);
+    const data = await response.json();
+
+    if (data.success) {
+      toutesLesReunions = data.data;
+    }
+  } catch (error) {
+    console.error("Erreur lors du chargement des réunions:", error);
   }
 }
 

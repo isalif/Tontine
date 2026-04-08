@@ -17,6 +17,9 @@ router.post("/", membreController.create);
 // PUT /api/membres/:id - Modifier un membre
 router.put("/:id", membreController.update);
 
+// PATCH /api/membres/:id/toggle-actif - Basculer actif/inactif
+router.patch("/:id/toggle-actif", membreController.toggleActif);
+
 // DELETE /api/membres/:id - Supprimer un membre
 router.delete("/:id", membreController.delete);
 

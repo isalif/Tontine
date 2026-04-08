@@ -1,10 +1,11 @@
 const db = require("./db");
 
 class Membre {
-  // Récupérer tous les membres actifs
-  static async getAll() {
+  // Récupérer tous les membres (actifs seulement par défaut)
+  static async getAll(includeInactive = false) {
+    const where = includeInactive ? "" : "WHERE actif = TRUE";
     const [rows] = await db.query(
-      "SELECT * FROM membres WHERE actif = TRUE ORDER BY nom, prenom",
+      `SELECT * FROM membres ${where} ORDER BY nom, prenom`,
     );
     return rows;
   }
@@ -41,12 +42,21 @@ class Membre {
   }
 
   // Modifier un membre
-  static async update(id, nom, prenom, numero, abonneAnnuel = false) {
+  static async update(id, nom, prenom, numero, abonneAnnuel = false, actif = true) {
     const [result] = await db.query(
-      `UPDATE membres 
-       SET nom = ?, prenom = ?, numero = ?, abonne_annuel = ? 
+      `UPDATE membres
+       SET nom = ?, prenom = ?, numero = ?, abonne_annuel = ?, actif = ?
        WHERE id = ?`,
-      [nom.trim(), prenom.trim(), numero.trim(), abonneAnnuel, id],
+      [nom.trim(), prenom.trim(), numero.trim(), abonneAnnuel, actif, id],
+    );
+    return result.affectedRows > 0;
+  }
+
+  // Basculer le statut actif/inactif
+  static async toggleActif(id) {
+    const [result] = await db.query(
+      "UPDATE membres SET actif = NOT actif WHERE id = ?",
+      [id],
     );
     return result.affectedRows > 0;
   }

@@ -40,7 +40,7 @@ const authController = {
 
   async login(req, res) {
     try {
-      const { email, password } = req.body;
+      const { email, password, remember } = req.body;
       if (!email || !password) {
         return res.status(400).json({ success: false, message: "E-mail et mot de passe requis" });
       }
@@ -56,6 +56,13 @@ const authController = {
       }
 
       req.session.userId = user.id;
+      if (remember) {
+        // Se souvenir de moi : cookie persistant 30 jours.
+        req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 30;
+      } else {
+        // Sinon, cookie de session : expire à la fermeture du navigateur.
+        req.session.cookie.expires = false;
+      }
       delete user.password_hash;
 
       res.json({ success: true, message: "Connexion réussie", data: user });

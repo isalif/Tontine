@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cotisations — Ressortissants de Kalfou</title>
+    <title>Cotisations — Tontix by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -14,8 +14,8 @@
         <div class="sidebar-brand">
           <span class="sidebar-brand-icon"><i class="fa-solid fa-sack-dollar"></i></span>
           <div class="sidebar-brand-text">
-            <strong>Ressortissants</strong>
-            <small>de Kalfou · Niamey</small>
+            <strong>Tontix</strong>
+            <small>by Draken</small>
           </div>
         </div>
         <nav class="sidebar-nav">
@@ -53,6 +53,39 @@
 
         <main class="content">
           <div id="alert" class="alert"></div>
+
+          <div class="stats-grid stats-grid-page">
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+              <h3 id="statTotalCollecte">0</h3>
+              <p>Total collecté (FCFA)</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-user-check"></i></div>
+              <h3 id="statPresents">0</h3>
+              <p>Présents</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-user-xmark"></i></div>
+              <h3 id="statAbsents">0</h3>
+              <p>Absents</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <h3 id="statPenalites">0</h3>
+              <p>Pénalités (FCFA)</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <input
+              type="text"
+              id="filtreInput"
+              class="form-control"
+              placeholder="Rechercher par nom ou numéro..."
+              oninput="filtrerCotisationsListe()"
+            />
+          </div>
 
           <div id="loading" class="loading">
             <div class="spinner"></div>

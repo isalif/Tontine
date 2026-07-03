@@ -75,7 +75,7 @@ async function chargerReunion() {
       if (reunionInfo.statut === "cloturee") {
         const btnCloture = document.getElementById("btnCloture");
         btnCloture.disabled = true;
-        btnCloture.textContent = "🔒 Réunion clôturée";
+        btnCloture.innerHTML = '<i class="fa-solid fa-lock"></i> Réunion clôturée';
       }
     }
   } catch (error) {
@@ -130,7 +130,7 @@ function afficherCotisations(liste) {
       <td>
         ${
           !cloturee
-            ? `<button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${c.id})">✏️ Modifier</button>`
+            ? `<button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${c.id})"><i class="fa-solid fa-pen"></i> Modifier</button>`
             : '<span style="color: var(--color-text-muted);">Réunion clôturée</span>'
         }
       </td>

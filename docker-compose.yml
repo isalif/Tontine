@@ -36,10 +36,12 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-tontine_dev}
       DB_NAME: tontine_db
       PORT: 3000
+      SESSION_SECRET: ${SESSION_SECRET:-tontine-dev-secret-change-me}
     ports:
       - "${APP_PORT:-3000}:3000"
     volumes:
       - ./frontend:/frontend
+      - tontine_uploads_data:/app/uploads
     networks:
       - tontine_net
 
@@ -60,3 +62,4 @@ networks:
 
 volumes:
   tontine_db_data:
+  tontine_uploads_data:

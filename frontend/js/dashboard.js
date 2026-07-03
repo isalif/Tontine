@@ -1,11 +1,20 @@
 window.addEventListener("DOMContentLoaded", chargerDashboard);
 
+if (window.Chart) {
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.color = "#6b7280";
+  Chart.defaults.plugins.legend.labels.usePointStyle = true;
+  Chart.defaults.plugins.legend.labels.boxWidth = 8;
+  Chart.defaults.plugins.legend.labels.boxHeight = 8;
+}
+
 async function chargerDashboard() {
   try {
-    const [dataM, dataR, dataP] = await Promise.all([
+    const [dataM, dataR, dataP, dataT] = await Promise.all([
       apiFetch("/membres/count"),
       apiFetch("/reunions"),
       apiFetch("/projets"),
+      apiFetch("/cotisations/totaux-par-reunion"),
     ]);
 
     document.getElementById("membresActifs").textContent = dataM.success
@@ -18,15 +27,153 @@ async function chargerDashboard() {
       const enCoursR = reunions.filter((r) => r.statut === "en_cours").length;
       document.getElementById("reunionsEnCours").textContent = enCoursR;
       afficherDernieresReunions(reunions.slice(0, 5));
+      renderChartReunionsStatut(reunions);
     }
 
     if (dataP.success) {
       afficherStatsProjets(dataP.data);
+      renderChartProjetsMontants(dataP.data);
+    }
+
+    if (dataT.success) {
+      renderChartCotisationsEvolution(dataT.data);
     }
   } catch (e) {
     console.error("Erreur chargement dashboard", e);
     toast("Erreur de connexion au serveur", "danger");
   }
+}
+
+// ====================== GRAPHIQUES ======================
+
+function renderChartReunionsStatut(reunions) {
+  const canvas = document.getElementById("chartReunionsStatut");
+  if (!canvas || !window.Chart) return;
+
+  const enCours = reunions.filter((r) => r.statut === "en_cours").length;
+  const cloturees = reunions.filter((r) => r.statut === "cloturee").length;
+
+  if (canvas._chart) canvas._chart.destroy();
+  canvas._chart = new Chart(canvas, {
+    type: "doughnut",
+    data: {
+      labels: ["En cours", "Clôturées"],
+      datasets: [
+        {
+          data: [enCours, cloturees],
+          backgroundColor: ["#2496b8", "#d98c1d"],
+          borderColor: "#ffffff",
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "65%",
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.label} : ${ctx.parsed}`,
+          },
+        },
+      },
+    },
+  });
+}
+
+function renderChartProjetsMontants(projets) {
+  const canvas = document.getElementById("chartProjetsMontants");
+  if (!canvas || !window.Chart) return;
+
+  if (canvas._chart) canvas._chart.destroy();
+  canvas._chart = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: projets.map((p) => p.nom),
+      datasets: [
+        {
+          label: "Cible",
+          data: projets.map((p) => Number(p.montant_cible) || 0),
+          backgroundColor: "#5b5bf0",
+          borderRadius: 4,
+          maxBarThickness: 28,
+        },
+        {
+          label: "Collecté",
+          data: projets.map((p) => Number(p.montant_collecte) || 0),
+          backgroundColor: "#17a06a",
+          borderRadius: 4,
+          maxBarThickness: 28,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false } },
+        y: {
+          grid: { color: "#e6e9f2" },
+          ticks: { callback: (v) => formatMontant(v) },
+        },
+      },
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.dataset.label} : ${formatMontant(ctx.parsed.y)} FCFA`,
+          },
+        },
+      },
+    },
+  });
+}
+
+function renderChartCotisationsEvolution(totaux) {
+  const canvas = document.getElementById("chartCotisationsEvolution");
+  if (!canvas || !window.Chart) return;
+
+  if (canvas._chart) canvas._chart.destroy();
+  canvas._chart = new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: totaux.map((t) => formatDate(t.date_reunion)),
+      datasets: [
+        {
+          label: "Total collecté",
+          data: totaux.map((t) => Number(t.total) || 0),
+          borderColor: "#5b5bf0",
+          backgroundColor: "rgba(91, 91, 240, 0.12)",
+          borderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: "#5b5bf0",
+          fill: true,
+          tension: 0.25,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false } },
+        y: {
+          grid: { color: "#e6e9f2" },
+          ticks: { callback: (v) => formatMontant(v) },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${formatMontant(ctx.parsed.y)} FCFA`,
+          },
+        },
+      },
+    },
+  });
 }
 
 function afficherDernieresReunions(reunions) {

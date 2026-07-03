@@ -18,9 +18,9 @@ async function chargerProjets() {
 }
 
 const STATUT_BADGES = {
-  en_cours: '<span class="badge badge-info">🔵 En cours</span>',
-  termine: '<span class="badge badge-success">🟢 Terminé</span>',
-  annule: '<span class="badge badge-danger">🔴 Annulé</span>',
+  en_cours: '<span class="badge badge-info"><i class="fa-solid fa-circle badge-dot"></i>En cours</span>',
+  termine: '<span class="badge badge-success"><i class="fa-solid fa-circle badge-dot"></i>Terminé</span>',
+  annule: '<span class="badge badge-danger"><i class="fa-solid fa-circle badge-dot"></i>Annulé</span>',
 };
 
 function afficherProjets(projets) {
@@ -55,10 +55,10 @@ function afficherProjets(projets) {
       <td>${p.date_fin ? formatDate(p.date_fin) : "—"}</td>
       <td>${STATUT_BADGES[p.statut] || p.statut}</td>
       <td>
-        <button class="btn btn-info btn-sm" onclick="voirDetail(${p.id})">👁 Détails</button>
-        <button class="btn btn-secondary btn-sm" onclick="ouvrirModalModifier(${p.id})">✏️</button>
-        <button class="btn btn-warning btn-sm" onclick="ouvrirModalConfig(${p.id})">⚙️</button>
-        <button class="btn btn-danger btn-sm" onclick="supprimerProjet(${p.id})">🗑️</button>
+        <button class="btn btn-info btn-sm" onclick="voirDetail(${p.id})"><i class="fa-solid fa-eye"></i> Détails</button>
+        <button class="btn btn-secondary btn-sm" onclick="ouvrirModalModifier(${p.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-warning btn-sm" onclick="ouvrirModalConfig(${p.id})"><i class="fa-solid fa-gear"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="supprimerProjet(${p.id})"><i class="fa-solid fa-trash"></i></button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -228,7 +228,7 @@ async function voirDetail(id) {
           <h3 style="color:var(--color-danger);margin:6px 0 0;font-size:1.15rem;">${formatMontant(restant)} FCFA</h3>
         </div>
       </div>
-      <p><strong>Période :</strong> ${p.date_debut ? formatDate(p.date_debut) : "—"} → ${p.date_fin ? formatDate(p.date_fin) : "—"}</p>
+      <p><strong>Période :</strong> ${p.date_debut ? formatDate(p.date_debut) : "—"} <i class="fa-solid fa-arrow-right"></i> ${p.date_fin ? formatDate(p.date_fin) : "—"}</p>
       <p class="mt-10"><strong>Configuration</strong></p>
       <p>Montant par réunion : ${formatMontant(p.montant_par_reunion)} FCFA</p>
       <p>Montant annuel : ${formatMontant(p.montant_annuel)} FCFA</p>

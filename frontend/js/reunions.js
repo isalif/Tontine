@@ -56,16 +56,16 @@ function afficherReunions(reunions) {
       <td>${r.projet_nom || "—"}</td>
       <td>${statutBadge}</td>
       <td>
-        <a href="cotisations.html?reunion=${r.id}" class="btn btn-sm btn-info">📝 Cotisations</a>
+        <a href="cotisations.html?reunion=${r.id}" class="btn btn-sm btn-info"><i class="fa-solid fa-file-pen"></i> Cotisations</a>
         ${
           r.statut === "en_cours"
             ? `
-          <button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${r.id})">✏️ Modifier</button>
-          <button class="btn btn-sm btn-warning" onclick="cloturerReunion(${r.id})">🔒 Clôturer</button>
+          <button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${r.id})"><i class="fa-solid fa-pen"></i> Modifier</button>
+          <button class="btn btn-sm btn-warning" onclick="cloturerReunion(${r.id})"><i class="fa-solid fa-lock"></i> Clôturer</button>
         `
             : ""
         }
-        <button class="btn btn-sm btn-danger" onclick="supprimerReunion(${r.id})">🗑️ Supprimer</button>
+        <button class="btn btn-sm btn-danger" onclick="supprimerReunion(${r.id})"><i class="fa-solid fa-trash"></i> Supprimer</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -115,7 +115,7 @@ async function ouvrirModalModification(id) {
       document.getElementById("modalTitle").textContent = "Modifier la réunion";
       document.getElementById("reunionId").value = r.id;
       document.getElementById("titre").value = r.titre || "";
-      document.getElementById("dateReunion").value = r.date_reunion;
+      document.getElementById("dateReunion").value = r.date_reunion.split("T")[0];
       document.getElementById("projetId").value = r.projet_id || "";
       document.getElementById("champCotisation").style.display = "none";
       document.getElementById("btnSubmit").textContent = "Enregistrer les modifications";

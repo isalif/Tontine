@@ -20,6 +20,9 @@ router.put(
   cotisationController.updatePresence
 );
 
+// GET /api/cotisations/totaux-par-reunion - Totaux par réunion (graphique dashboard)
+router.get("/totaux-par-reunion", cotisationController.getTotauxParReunion);
+
 // GET /api/cotisations/configuration - Récupérer la configuration
 router.get("/configuration", cotisationController.getConfiguration);
 

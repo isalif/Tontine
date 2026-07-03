@@ -30,9 +30,9 @@ async function chargerCotisations() {
 }
 
 const STATUT_BADGES = {
-  payee: '<span class="badge badge-success">🟢 Payée</span>',
-  en_attente: '<span class="badge badge-warning" style="background:var(--color-warning-soft);color:var(--color-warning)">🟡 En attente</span>',
-  annule: '<span class="badge badge-danger">🔴 Annulée</span>',
+  payee: '<span class="badge badge-success"><i class="fa-solid fa-circle badge-dot"></i>Payée</span>',
+  en_attente: '<span class="badge badge-warning" style="background:var(--color-warning-soft);color:var(--color-warning)"><i class="fa-solid fa-circle badge-dot"></i>En attente</span>',
+  annule: '<span class="badge badge-danger"><i class="fa-solid fa-circle badge-dot"></i>Annulée</span>',
 };
 
 function afficherCotisations(liste) {
@@ -59,8 +59,8 @@ function afficherCotisations(liste) {
       <td>${c.projet_nom || "—"}</td>
       <td>${STATUT_BADGES[c.statut] || c.statut}</td>
       <td>
-        <button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${c.id})">✏️ Modifier</button>
-        <button class="btn btn-sm btn-danger" onclick="supprimerCotisation(${c.id})">🗑️ Supprimer</button>
+        <button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${c.id})"><i class="fa-solid fa-pen"></i> Modifier</button>
+        <button class="btn btn-sm btn-danger" onclick="supprimerCotisation(${c.id})"><i class="fa-solid fa-trash"></i> Supprimer</button>
       </td>
     `;
     tbody.appendChild(tr);

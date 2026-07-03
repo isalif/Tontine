@@ -10,4 +10,5 @@ module.exports = {
     queueLimit: 0,
   },
   port: Number(process.env.PORT) || 3000, // Port du serveur Express
+  sessionSecret: process.env.SESSION_SECRET || "tontine-dev-secret-change-me",
 };

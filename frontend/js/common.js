@@ -3,10 +3,22 @@
 const API = "/api";
 
 async function apiFetch(path, options = {}) {
+  const { headers, ...rest } = options;
+  const isFormData = rest.body instanceof FormData;
+  const finalHeaders = isFormData
+    ? { ...headers }
+    : { "Content-Type": "application/json", ...headers };
+
   const response = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
+    headers: finalHeaders,
+    ...rest,
   });
+
+  const isAuthEndpoint = path.startsWith("/auth/login") || path.startsWith("/auth/register");
+  if (response.status === 401 && !isAuthEndpoint) {
+    window.location.href = "/login";
+  }
+
   return response.json();
 }
 
@@ -22,10 +34,10 @@ function formatDate(date) {
 /* ---------------------------- Toasts ---------------------------- */
 
 const TOAST_ICONS = {
-  success: "✓",
-  danger: "✕",
-  warning: "⚠",
-  info: "ℹ",
+  success: '<i class="fa-solid fa-check"></i>',
+  danger: '<i class="fa-solid fa-xmark"></i>',
+  warning: '<i class="fa-solid fa-triangle-exclamation"></i>',
+  info: '<i class="fa-solid fa-circle-info"></i>',
 };
 
 function toast(message, type = "info") {
@@ -96,7 +108,7 @@ function ensureConfirmModal() {
     <div class="modal-content modal-small">
       <div class="modal-header">
         <h2 id="__confirmTitle">Confirmation</h2>
-        <button type="button" class="modal-close" data-close="__confirmModal">✕</button>
+        <button type="button" class="modal-close" data-close="__confirmModal"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body-center">
         <p id="__confirmMessage" class="text-lg"></p>
@@ -166,4 +178,42 @@ function initSidebar() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", initSidebar);
+function initials(nom, prenom) {
+  return `${(prenom || "").charAt(0)}${(nom || "").charAt(0)}`.toUpperCase() || "?";
+}
+
+async function loadCurrentUser() {
+  const nameEl = document.getElementById("sidebarUserName");
+  const avatarEl = document.getElementById("sidebarUserAvatar");
+  const logoutBtn = document.getElementById("sidebarLogout");
+  if (!nameEl && !avatarEl && !logoutBtn) return;
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await apiFetch("/auth/logout", { method: "POST" });
+      window.location.href = "/login";
+    });
+  }
+
+  try {
+    const data = await apiFetch("/auth/me");
+    if (!data.success) return;
+
+    const user = data.data;
+    if (nameEl) nameEl.textContent = `${user.prenom} ${user.nom}`;
+    if (avatarEl) {
+      if (user.photo) {
+        avatarEl.outerHTML = `<img src="/uploads/avatars/${user.photo}" alt="" class="sidebar-user-avatar" id="sidebarUserAvatar" />`;
+      } else {
+        avatarEl.textContent = initials(user.nom, user.prenom);
+      }
+    }
+  } catch (e) {
+    console.error("Erreur chargement utilisateur", e);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initSidebar();
+  loadCurrentUser();
+});

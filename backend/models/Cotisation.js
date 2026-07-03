@@ -68,6 +68,23 @@ class Cotisation {
     return rows[0];
   }
 
+  // Totaux collectés par réunion (pour le graphique d'évolution du dashboard)
+  static async getTotauxParReunion() {
+    const query = `
+      SELECT
+        r.id AS reunion_id,
+        r.date_reunion,
+        r.titre,
+        COALESCE(SUM(c.total), 0) AS total
+      FROM reunions r
+      LEFT JOIN cotisations c ON c.reunion_id = r.id
+      GROUP BY r.id, r.date_reunion, r.titre
+      ORDER BY r.date_reunion ASC
+    `;
+    const [rows] = await db.query(query);
+    return rows;
+  }
+
   // Mettre à jour la présence d'un membre
   static async updatePresence(reunionId, membreId, present) {
     const [result] = await db.query(

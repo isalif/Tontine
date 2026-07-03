@@ -37,7 +37,7 @@ function afficherMembres(membres) {
     const estActif = !!m.actif;
 
     const badgeAbonne = estAbonne
-      ? '<span class="badge badge-info">🟢 Abonné annuel</span>'
+      ? '<span class="badge badge-info"><i class="fa-solid fa-circle badge-dot"></i>Abonné annuel</span>'
       : '<span class="badge badge-muted">Par réunion</span>';
 
     const badgeActif = estActif
@@ -53,8 +53,8 @@ function afficherMembres(membres) {
       <td>${badgeAbonne}</td>
       <td>${badgeActif}</td>
       <td>
-        <button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${m.id})">✏️ Modifier</button>
-        <button class="btn btn-sm btn-danger" onclick="ouvrirModalConfirmDelete(${m.id})">🗑️ Supprimer</button>
+        <button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${m.id})"><i class="fa-solid fa-pen"></i> Modifier</button>
+        <button class="btn btn-sm btn-danger" onclick="ouvrirModalConfirmDelete(${m.id})"><i class="fa-solid fa-trash"></i> Supprimer</button>
       </td>
     `;
     tbody.appendChild(tr);

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon profil — Ressortissants de Kalfou</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body data-page="profile">
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-icon"><i class="fa-solid fa-sack-dollar"></i></span>
+          <div class="sidebar-brand-text">
+            <strong>Ressortissants</strong>
+            <small>de Kalfou · Niamey</small>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="/" data-page="index" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-house"></i></span>Tableau de bord</a>
+          <a href="/membres" data-page="membres" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-users"></i></span>Membres</a>
+          <a href="/reunions" data-page="reunions" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-calendar-days"></i></span>Réunions</a>
+          <a href="/projets" data-page="projets" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-bullseye"></i></span>Projets</a>
+          <a href="/cotisations-special" data-page="cotisations-special" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-gem"></i></span>Cotisations spéciales</a>
+        </nav>
+        <div class="sidebar-footer">
+          <a href="/profile" class="sidebar-user">
+            <span class="sidebar-user-avatar" id="sidebarUserAvatar">--</span>
+            <span class="sidebar-user-name" id="sidebarUserName">Mon profil</span>
+          </a>
+          <button class="sidebar-logout" id="sidebarLogout" title="Se déconnecter">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </aside>
+      <div class="sidebar-backdrop"></div>
+
+      <div class="app-main">
+        <header class="topbar">
+          <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+          <div class="topbar-title">
+            <h1>Mon profil</h1>
+            <p>Gérer vos informations et votre photo</p>
+          </div>
+        </header>
+
+        <main class="content">
+          <div id="alert" class="alert"></div>
+
+          <div class="card">
+            <div class="card-title">Photo de profil</div>
+            <div class="profile-photo-row">
+              <div class="profile-photo" id="profilePhoto">--</div>
+              <div>
+                <input type="file" id="photoInput" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden" />
+                <button type="button" class="btn btn-secondary btn-sm" id="btnChoosePhoto">
+                  <i class="fa-solid fa-camera"></i> Changer la photo
+                </button>
+                <p class="mt-10" style="font-size:0.8rem;color:var(--color-text-muted)">JPG, PNG, WEBP ou GIF — 3 Mo maximum.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Informations personnelles</div>
+            <form id="profileForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="nom">Nom</label>
+                  <input type="text" id="nom" class="form-control" required />
+                </div>
+                <div class="form-group">
+                  <label for="prenom">Prénom</label>
+                  <input type="text" id="prenom" class="form-control" required />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="email">Adresse e-mail</label>
+                <input type="email" id="email" class="form-control" required />
+              </div>
+
+              <hr style="border:none;border-top:1px solid var(--color-border);margin:24px 0;" />
+
+              <p class="mb-20" style="font-weight:600">Changer le mot de passe (optionnel)</p>
+
+              <div class="form-group">
+                <label for="currentPassword">Mot de passe actuel</label>
+                <input type="password" id="currentPassword" class="form-control" autocomplete="current-password" />
+              </div>
+
+              <div class="form-group">
+                <label for="newPassword">Nouveau mot de passe</label>
+                <input type="password" id="newPassword" class="form-control" minlength="6" autocomplete="new-password" />
+              </div>
+
+              <div class="modal-footer" style="justify-content:flex-start;margin-top:0;">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa-solid fa-floppy-disk"></i> Enregistrer
+                </button>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/profile.js"></script>
+  </body>
+</html>

@@ -1,3 +1,7 @@
+# Uploaded user content
+backend/uploads/avatars/*
+!backend/uploads/avatars/.gitkeep
+
 # Logs
 logs
 *.log

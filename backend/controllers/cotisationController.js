@@ -17,7 +17,21 @@ const cotisationController = {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { cotisation_mensuelle, cotisation_speciale, penalite } = req.body;
+
+      const cotisation = await Cotisation.getById(id);
+      if (!cotisation) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Cotisation introuvable" });
+      }
+
+      // Ne remplace que les champs fournis, préserve les autres (ex: cotisation_speciale
+      // non envoyée par le formulaire simplifié) pour ne pas corrompre le total généré.
+      const cotisation_mensuelle =
+        req.body.cotisation_mensuelle ?? cotisation.cotisation_mensuelle;
+      const cotisation_speciale =
+        req.body.cotisation_speciale ?? cotisation.cotisation_speciale;
+      const penalite = req.body.penalite ?? cotisation.penalite;
 
       // Validation des montants
       if (cotisation_mensuelle < 0 || cotisation_speciale < 0 || penalite < 0) {
@@ -25,13 +39,6 @@ const cotisationController = {
           success: false,
           message: "Les montants ne peuvent pas être négatifs",
         });
-      }
-
-      const cotisation = await Cotisation.getById(id);
-      if (!cotisation) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Cotisation introuvable" });
       }
 
       await Cotisation.update(
@@ -74,6 +81,17 @@ const cotisationController = {
       });
     } catch (error) {
       console.error("Erreur addPenalite:", error);
+      res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+  },
+
+  // Totaux collectés par réunion (graphique d'évolution du dashboard)
+  async getTotauxParReunion(req, res) {
+    try {
+      const totaux = await Cotisation.getTotauxParReunion();
+      res.json({ success: true, data: totaux });
+    } catch (error) {
+      console.error("Erreur getTotauxParReunion:", error);
       res.status(500).json({ success: false, message: "Erreur serveur" });
     }
   },

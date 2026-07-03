@@ -3,193 +3,145 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cotisations - Tontine</title>
+    <title>Cotisations — Ressortissants de Kalfou</title>
     <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </head>
-  <body>
-    <div class="container">
-      <!-- Header -->
-      <div class="header">
-        <h1>💵 Gestion des Cotisations</h1>
-        <p id="headerDate">Réunion du ...</p>
-      </div>
-
-      <!-- Navigation -->
-      <nav class="nav">
-        <ul>
-          <li><a href="index.html">Accueil</a></li>
-          <li><a href="membres.html">Membres</a></li>
-          <li><a href="reunions.html">Réunions</a></li>
-          <li><a href="projets.html">Projets</a></li>
-          <li>
-            <a href="cotisations-special.html">Cotisations Spéciales</a>
-          </li>
-          <li><a href="listes-presence.html">Listes de présence</a></li>
-        </ul>
-      </nav>
-
-      <!-- Content -->
-      <div class="content">
-        <!-- Alert -->
-        <div id="alert" class="alert"></div>
-
-        <!-- Boutons d'action -->
-        <div class="d-flex justify-between align-center mb-20">
-          <h2>Cotisations de la réunion</h2>
-          <div>
-            <!--
-            <button class="btn btn-info" onclick="ouvrirModalConfiguration()">
-              ⚙️ Configuration
-            </button> -->
-            <button
-              class="btn btn-warning"
-              id="btnCloture"
-              onclick="cloturerReunion()"
-            >
-              🔒 Clôturer la réunion
-            </button>
+  <body data-page="reunions">
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-icon">💰</span>
+          <div class="sidebar-brand-text">
+            <strong>Ressortissants</strong>
+            <small>de Kalfou · Niamey</small>
           </div>
         </div>
-
-        <!-- Loading -->
-        <div id="loading" class="loading">
-          <div class="spinner"></div>
-          <p>Chargement des cotisations...</p>
+        <nav class="sidebar-nav">
+          <a href="/" data-page="index" class="nav-link"><span class="nav-icon">🏠</span>Tableau de bord</a>
+          <a href="/membres" data-page="membres" class="nav-link"><span class="nav-icon">👥</span>Membres</a>
+          <a href="/reunions" data-page="reunions" class="nav-link"><span class="nav-icon">📅</span>Réunions</a>
+          <a href="/projets" data-page="projets" class="nav-link"><span class="nav-icon">🎯</span>Projets</a>
+          <a href="/cotisations-special" data-page="cotisations-special" class="nav-link"><span class="nav-icon">💎</span>Cotisations spéciales</a>
+        </nav>
+        <div class="sidebar-footer">
+          <small>Application de gestion de tontine</small>
         </div>
+      </aside>
+      <div class="sidebar-backdrop"></div>
 
-        <!-- Table des cotisations (simplifiée) -->
-        <div id="cotisationsTable">
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Membre</th>
-                  <th>Numéro</th>
-                  <th>Cotisation mensuelle</th>
-                  <th>Pénalité</th>
-                  <th>Total</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="cotisationsBody"></tbody>
-            </table>
+      <div class="app-main">
+        <header class="topbar">
+          <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">☰</button>
+          <div class="topbar-title">
+            <h1>Cotisations</h1>
+            <p id="headerDate">Réunion du ...</p>
           </div>
-        </div>
+          <div class="topbar-actions">
+            <a href="reunions.html" class="btn btn-secondary">← Réunions</a>
+            <button class="btn btn-info" onclick="exporterPDF()">📥 Exporter la présence (PDF)</button>
+            <button class="btn btn-warning" id="btnCloture" onclick="cloturerReunion()">🔒 Clôturer la réunion</button>
+          </div>
+        </header>
 
-        <!-- Empty State -->
-        <div id="emptyState" class="empty-state">
-          <h3>Aucune donnée</h3>
-          <p>Impossible de charger les cotisations</p>
-          <a href="reunions.html" class="btn btn-primary mt-20"
-            >Retour aux réunions</a
-          >
-        </div>
+        <main class="content">
+          <div id="alert" class="alert"></div>
+
+          <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Chargement des cotisations...</p>
+          </div>
+
+          <div id="cotisationsTable">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Membre</th>
+                    <th>Numéro</th>
+                    <th>Présent</th>
+                    <th>Cotisation mensuelle</th>
+                    <th>Pénalité</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="cotisationsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <div class="empty-state-icon">💵</div>
+            <h3>Aucune donnée</h3>
+            <p>Impossible de charger les cotisations</p>
+            <a href="reunions.html" class="btn btn-primary mt-20">Retour aux réunions</a>
+          </div>
+        </main>
       </div>
     </div>
 
-    <!-- Modal Modifier Cotisation (sans cotisation spéciale) -->
+    <!-- Modal Modifier Cotisation -->
     <div id="modalCotisation" class="modal">
       <div class="modal-content">
         <div class="modal-header">
           <h2>Modifier la cotisation</h2>
+          <button type="button" class="modal-close" data-close="modalCotisation">✕</button>
         </div>
         <form id="cotisationForm">
           <input type="hidden" id="cotisationId" />
 
           <p><strong>Membre :</strong> <span id="membreNom"></span></p>
 
-          <div class="form-group">
+          <div class="form-group mt-20">
             <label for="cotisationMensuelle">Cotisation mensuelle (FCFA)</label>
-            <input
-              type="number"
-              id="cotisationMensuelle"
-              class="form-control"
-              min="0"
-              step="100"
-              required
-            />
+            <input type="number" id="cotisationMensuelle" class="form-control" min="0" step="100" required />
           </div>
 
           <div class="form-group">
             <label for="penalite">Pénalité (FCFA)</label>
-            <input
-              type="number"
-              id="penalite"
-              class="form-control"
-              min="0"
-              step="100"
-              required
-            />
+            <input type="number" id="penalite" class="form-control" min="0" step="100" required />
           </div>
 
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="fermerModalCotisation()"
-            >
-              Annuler
-            </button>
+            <button type="button" class="btn btn-secondary" data-close="modalCotisation">Annuler</button>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Modal Configuration (sans cotisation spéciale) -->
+    <!-- Modal Configuration -->
     <div id="modalConfig" class="modal">
       <div class="modal-content">
         <div class="modal-header">
           <h2>⚙️ Configuration des montants</h2>
+          <button type="button" class="modal-close" data-close="modalConfig">✕</button>
         </div>
         <form id="configForm">
           <div class="form-group">
-            <label for="configMensuelle"
-              >Cotisation mensuelle par défaut (FCFA)</label
-            >
-            <input
-              type="number"
-              id="configMensuelle"
-              class="form-control"
-              min="0"
-              step="100"
-              required
-            />
+            <label for="configMensuelle">Cotisation mensuelle par défaut (FCFA)</label>
+            <input type="number" id="configMensuelle" class="form-control" min="0" step="100" required />
           </div>
 
           <div class="form-group">
-            <label for="configPenalite"
-              >Pénalité de retard par défaut (FCFA)</label
-            >
-            <input
-              type="number"
-              id="configPenalite"
-              class="form-control"
-              min="0"
-              step="100"
-              required
-            />
+            <label for="configPenalite">Pénalité de retard par défaut (FCFA)</label>
+            <input type="number" id="configPenalite" class="form-control" min="0" step="100" required />
           </div>
 
           <div class="alert alert-warning show">
-            <strong>⚠️ Attention :</strong> Ces valeurs seront utilisées pour
-            les prochaines réunions.
+            <strong>⚠️ Attention :</strong> Ces valeurs seront utilisées pour les prochaines réunions.
           </div>
 
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="fermerModalConfig()"
-            >
-              Annuler
-            </button>
+            <button type="button" class="btn btn-secondary" data-close="modalConfig">Annuler</button>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
           </div>
         </form>
       </div>
     </div>
 
+    <script src="js/common.js"></script>
     <script src="js/cotisations.js"></script>
   </body>
 </html>

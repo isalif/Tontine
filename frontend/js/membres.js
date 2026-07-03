@@ -1,4 +1,3 @@
-const API = "http://localhost:3000/api";
 let membresActuels = [];
 let membreIdToDelete = null;
 
@@ -6,14 +5,13 @@ let membreIdToDelete = null;
 async function chargerMembres() {
   document.getElementById("loading").style.display = "flex";
   document.getElementById("membresTable").style.display = "none";
-  document.getElementById("emptyState").style.display = "none";
+  document.getElementById("emptyState").classList.add("hidden");
 
   try {
-    const res = await fetch(`${API}/membres?all=true`);
-    const data = await res.json();
+    const data = await apiFetch("/membres?all=true");
     afficherMembres(data.data || []);
   } catch (e) {
-    afficherAlerte("Erreur de connexion au serveur", "error");
+    afficherAlert("Erreur de connexion au serveur", "danger");
   } finally {
     document.getElementById("loading").style.display = "none";
   }
@@ -23,28 +21,28 @@ function afficherMembres(membres) {
   const tbody = document.getElementById("membresBody");
   tbody.innerHTML = "";
 
+  membresActuels = membres;
+
   if (membres.length === 0) {
-    document.getElementById("emptyState").style.display = "block";
+    document.getElementById("emptyState").classList.remove("hidden");
     document.getElementById("membresTable").style.display = "none";
     return;
   }
 
-  document.getElementById("emptyState").style.display = "none";
+  document.getElementById("emptyState").classList.add("hidden");
   document.getElementById("membresTable").style.display = "block";
-
-  membresActuels = membres;
 
   membres.forEach((m) => {
     const estAbonne = !!m.abonne_annuel;
     const estActif = !!m.actif;
 
     const badgeAbonne = estAbonne
-      ? '<span style="padding: 5px 10px; background: #17a2b8; color: white; border-radius: 5px; font-weight: bold;">🟢 Abonné Annuel</span>'
-      : '<span style="padding: 5px 10px; background: #6c757d; color: white; border-radius: 5px;">Par réunion</span>';
+      ? '<span class="badge badge-info">🟢 Abonné annuel</span>'
+      : '<span class="badge badge-muted">Par réunion</span>';
 
     const badgeActif = estActif
-      ? '<span style="padding: 5px 10px; background: #28a745; color: white; border-radius: 5px; font-weight: bold;">Actif</span>'
-      : '<span style="padding: 5px 10px; background: #dc3545; color: white; border-radius: 5px; font-weight: bold;">Inactif</span>';
+      ? '<span class="badge badge-success">Actif</span>'
+      : '<span class="badge badge-danger">Inactif</span>';
 
     const tr = document.createElement("tr");
     tr.style.opacity = estActif ? "1" : "0.6";
@@ -63,6 +61,22 @@ function afficherMembres(membres) {
   });
 }
 
+function filtrerMembres() {
+  const recherche = document.getElementById("filtreInput").value.toLowerCase();
+  const lignes = document.querySelectorAll("#membresBody tr");
+
+  lignes.forEach((ligne) => {
+    const nom = ligne.cells[0]?.textContent.toLowerCase() || "";
+    const prenom = ligne.cells[1]?.textContent.toLowerCase() || "";
+    const tel = ligne.cells[2]?.textContent.toLowerCase() || "";
+
+    ligne.style.display =
+      nom.includes(recherche) || prenom.includes(recherche) || tel.includes(recherche)
+        ? ""
+        : "none";
+  });
+}
+
 function majLabelActif() {
   const actif = document.getElementById("actif").checked;
   document.getElementById("actifLabel").textContent = actif ? "Actif" : "Inactif";
@@ -75,7 +89,7 @@ function ouvrirModalAjout() {
   document.getElementById("membreId").value = "";
   document.getElementById("actif").checked = true;
   majLabelActif();
-  document.getElementById("modal").style.display = "flex";
+  openModal("modal");
 }
 
 // Modal Modification
@@ -92,48 +106,33 @@ function ouvrirModalModification(id) {
   document.getElementById("actif").checked = !!m.actif;
   majLabelActif();
 
-  document.getElementById("modal").style.display = "flex";
-}
-
-function fermerModal() {
-  document.getElementById("modal").style.display = "none";
+  openModal("modal");
 }
 
 // Modal Confirmation Suppression
 function ouvrirModalConfirmDelete(id) {
   membreIdToDelete = id;
-  document.getElementById("modalConfirmDelete").style.display = "flex";
-}
-
-function fermerModalConfirmDelete() {
-  membreIdToDelete = null;
-  document.getElementById("modalConfirmDelete").style.display = "none";
+  openModal("modalConfirmDelete");
 }
 
 async function confirmerSuppression() {
   if (!membreIdToDelete) return;
 
   try {
-    const res = await fetch(`${API}/membres/${membreIdToDelete}`, {
-      method: "DELETE",
-    });
-    const data = await res.json();
-
-    fermerModalConfirmDelete();
+    const data = await apiFetch(`/membres/${membreIdToDelete}`, { method: "DELETE" });
+    closeModal("modalConfirmDelete");
 
     if (data.success) {
-      afficherAlerte("Membre supprimé avec succès", "success");
+      afficherAlert("Membre supprimé avec succès", "success");
       chargerMembres();
     } else {
-      afficherAlerte(
-        data.message || "Impossible de supprimer ce membre",
-        "error",
-      );
+      afficherAlert(data.message || "Impossible de supprimer ce membre", "danger");
     }
   } catch (e) {
-    fermerModalConfirmDelete();
-    afficherAlerte("Erreur lors de la suppression", "error");
+    closeModal("modalConfirmDelete");
+    afficherAlert("Erreur lors de la suppression", "danger");
   }
+  membreIdToDelete = null;
 }
 
 // Soumission formulaire
@@ -151,58 +150,36 @@ document.getElementById("membreForm").addEventListener("submit", async (e) => {
   };
 
   try {
-    const res = await fetch(`${API}/membres${id ? "/" + id : ""}`, {
+    const data = await apiFetch(`/membres${id ? "/" + id : ""}`, {
       method: id ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
-
     if (data.success) {
-      afficherAlerte(
-        id ? "Membre modifié avec succès" : "Membre ajouté avec succès",
-        "success",
-      );
-      fermerModal();
+      afficherAlert(id ? "Membre modifié avec succès" : "Membre ajouté avec succès", "success");
+      closeModal("modal");
       chargerMembres();
     } else {
-      afficherAlerte(data.message || "Erreur", "error");
+      afficherAlert(data.message || "Erreur", "danger");
     }
   } catch (e) {
-    afficherAlerte("Erreur lors de l'enregistrement", "error");
+    afficherAlert("Erreur lors de l'enregistrement", "danger");
   }
 });
 
 async function toggleActif(id) {
   try {
-    const res = await fetch(`${API}/membres/${id}/toggle-actif`, {
-      method: "PATCH",
-    });
-    const data = await res.json();
+    const data = await apiFetch(`/membres/${id}/toggle-actif`, { method: "PATCH" });
     if (data.success) {
-      afficherAlerte(data.message, "success");
+      afficherAlert(data.message, "success");
       chargerMembres();
     } else {
-      afficherAlerte(data.message || "Erreur", "error");
+      afficherAlert(data.message || "Erreur", "danger");
     }
   } catch (e) {
-    afficherAlerte("Erreur de connexion au serveur", "error");
+    afficherAlert("Erreur de connexion au serveur", "danger");
   }
 }
-
-function afficherAlerte(msg, type) {
-  const el = document.getElementById("alert");
-  el.textContent = msg;
-  el.className = `alert alert-${type}`;
-  el.style.display = "block";
-  setTimeout(() => (el.style.display = "none"), 4000);
-}
-
-window.onclick = (e) => {
-  if (e.target.id === "modal") fermerModal();
-  if (e.target.id === "modalConfirmDelete") fermerModalConfirmDelete();
-};
 
 document.getElementById("actif").addEventListener("change", majLabelActif);
 

@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof -nP -iTCP -sTCP:LISTEN)",
+      "Bash(awk '{print $1,$9}')",
+      "Bash(brew services *)",
+      "Bash(git rm *)",
+      "Bash(grep -n \"INSERT INTO \\\\`cotisations\\\\`\" db/init/01-schema.sql)",
+      "Bash(curl -s localhost:3000/api/membres/count)",
+      "Bash(curl -s localhost:3000/api/reunions)",
+      "Bash(curl -s localhost:3000/api/projets)",
+      "Bash(curl -s localhost:3000/api/cotisations/reunion/11)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" localhost:3000/membres)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" localhost:3000/reunions)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" localhost:3000/listes-presence)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" localhost:8085)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(node -e \"require.resolve\\('playwright'\\)\")",
+      "Bash(npm ls *)",
+      "Bash(npx playwright *)"
+    ]
+  }
+}

@@ -3,77 +3,87 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestion des Membres - Tontine</title>
+    <title>Membres — Ressortissants de Kalfou</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>👥 Gestion des Membres</h1>
-        <p>Ajouter, modifier ou supprimer des membres</p>
-      </div>
-
-      <nav class="nav">
-        <ul>
-          <li><a href="index.html">Accueil</a></li>
-          <li><a href="membres.html" class="active">Membres</a></li>
-          <li><a href="reunions.html">Réunions</a></li>
-          <li><a href="projets.html">Projets</a></li>
-          <li><a href="cotisations-special.html">Cotisations Spéciales</a></li>
-          <li><a href="listes-presence.html">Listes de présence</a></li>
-        </ul>
-      </nav>
-
-      <div class="content">
-        <div id="alert" class="alert"></div>
-
-        <div class="d-flex justify-between align-center mb-20">
-          <h2>Liste des membres</h2>
-          <button class="btn btn-primary" onclick="ouvrirModalAjout()">
-            ➕ Ajouter un membre
-          </button>
-        </div>
-
-        <div class="form-group">
-          <input
-            type="text"
-            id="filtreInput"
-            class="form-control"
-            placeholder="🔍 Rechercher par nom, prénom ou téléphone..."
-            oninput="filtrerMembres()"
-          />
-        </div>
-
-        <div id="loading" class="loading">
-          <div class="spinner"></div>
-          <p>Chargement des membres...</p>
-        </div>
-
-        <div id="membresTable">
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Prénom</th>
-                  <th>Numéro</th>
-                  <th>Mode de cotisation</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="membresBody"></tbody>
-            </table>
+  <body data-page="membres">
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-icon">💰</span>
+          <div class="sidebar-brand-text">
+            <strong>Ressortissants</strong>
+            <small>de Kalfou · Niamey</small>
           </div>
         </div>
-
-        <div id="emptyState" class="empty-state">
-          <h3>Aucun membre</h3>
-          <p>Commencez par ajouter votre premier membre</p>
-          <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()">
-            ➕ Ajouter un membre
-          </button>
+        <nav class="sidebar-nav">
+          <a href="/" data-page="index" class="nav-link"><span class="nav-icon">🏠</span>Tableau de bord</a>
+          <a href="/membres" data-page="membres" class="nav-link"><span class="nav-icon">👥</span>Membres</a>
+          <a href="/reunions" data-page="reunions" class="nav-link"><span class="nav-icon">📅</span>Réunions</a>
+          <a href="/projets" data-page="projets" class="nav-link"><span class="nav-icon">🎯</span>Projets</a>
+          <a href="/cotisations-special" data-page="cotisations-special" class="nav-link"><span class="nav-icon">💎</span>Cotisations spéciales</a>
+        </nav>
+        <div class="sidebar-footer">
+          <small>Application de gestion de tontine</small>
         </div>
+      </aside>
+      <div class="sidebar-backdrop"></div>
+
+      <div class="app-main">
+        <header class="topbar">
+          <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">☰</button>
+          <div class="topbar-title">
+            <h1>Membres</h1>
+            <p>Ajouter, modifier ou désactiver des membres</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-primary" onclick="ouvrirModalAjout()">➕ Ajouter un membre</button>
+          </div>
+        </header>
+
+        <main class="content">
+          <div id="alert" class="alert"></div>
+
+          <div class="form-group">
+            <input
+              type="text"
+              id="filtreInput"
+              class="form-control"
+              placeholder="🔍 Rechercher par nom, prénom ou téléphone..."
+              oninput="filtrerMembres()"
+            />
+          </div>
+
+          <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Chargement des membres...</p>
+          </div>
+
+          <div id="membresTable">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Numéro</th>
+                    <th>Mode de cotisation</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="membresBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <div class="empty-state-icon">👥</div>
+            <h3>Aucun membre</h3>
+            <p>Commencez par ajouter votre premier membre</p>
+            <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()">➕ Ajouter un membre</button>
+          </div>
+        </main>
       </div>
     </div>
 
@@ -82,18 +92,20 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 id="modalTitle">Ajouter un membre</h2>
+          <button type="button" class="modal-close" data-close="modal">✕</button>
         </div>
         <form id="membreForm">
           <input type="hidden" id="membreId" />
 
-          <div class="form-group">
-            <label for="nom">Nom *</label>
-            <input type="text" id="nom" class="form-control" required />
-          </div>
-
-          <div class="form-group">
-            <label for="prenom">Prénom *</label>
-            <input type="text" id="prenom" class="form-control" required />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nom">Nom *</label>
+              <input type="text" id="nom" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label for="prenom">Prénom *</label>
+              <input type="text" id="prenom" class="form-control" required />
+            </div>
           </div>
 
           <div class="form-group">
@@ -129,13 +141,7 @@
           </div>
 
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="fermerModal()"
-            >
-              Annuler
-            </button>
+            <button type="button" class="btn btn-secondary" data-close="modal">Annuler</button>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
           </div>
         </form>
@@ -147,57 +153,20 @@
       <div class="modal-content modal-small">
         <div class="modal-header">
           <h2>🗑️ Confirmation</h2>
+          <button type="button" class="modal-close" data-close="modalConfirmDelete">✕</button>
         </div>
         <div class="modal-body modal-body-center">
-          <p id="deleteMessage" class="text-lg">
-            Voulez-vous vraiment supprimer ce membre ?
-          </p>
+          <p id="deleteMessage" class="text-lg">Voulez-vous vraiment supprimer ce membre ?</p>
           <p class="text-warning mt-10">Cette action est irréversible.</p>
         </div>
         <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            onclick="fermerModalConfirmDelete()"
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            class="btn btn-danger"
-            onclick="confirmerSuppression()"
-          >
-            Oui, supprimer
-          </button>
+          <button type="button" class="btn btn-secondary" data-close="modalConfirmDelete">Annuler</button>
+          <button type="button" class="btn btn-danger" onclick="confirmerSuppression()">Oui, supprimer</button>
         </div>
       </div>
     </div>
 
+    <script src="js/common.js"></script>
     <script src="js/membres.js"></script>
-
-    <script>
-      function filtrerMembres() {
-        const recherche = document
-          .getElementById("filtreInput")
-          .value.toLowerCase();
-        const lignes = document.querySelectorAll("#membresBody tr");
-
-        lignes.forEach((ligne) => {
-          const nom = ligne.cells[0]?.textContent.toLowerCase() || "";
-          const prenom = ligne.cells[1]?.textContent.toLowerCase() || "";
-          const tel = ligne.cells[2]?.textContent.toLowerCase() || "";
-
-          if (
-            nom.includes(recherche) ||
-            prenom.includes(recherche) ||
-            tel.includes(recherche)
-          ) {
-            ligne.style.display = "";
-          } else {
-            ligne.style.display = "none";
-          }
-        });
-      }
-    </script>
   </body>
 </html>

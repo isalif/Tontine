@@ -1,8 +1,5 @@
-const API_URL = "http://localhost:3000/api";
 let reunions = [];
-let reunionASupprimer = null;
 
-// Charger les réunions au chargement
 window.addEventListener("DOMContentLoaded", () => {
   chargerReunions();
   chargerProjetsEnCours();
@@ -10,8 +7,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 async function chargerCotisationDefaut() {
   try {
-    const res = await fetch(`${API_URL}/cotisations/configuration`);
-    const data = await res.json();
+    const data = await apiFetch("/cotisations/configuration");
     if (data.success && data.data.cotisation_mensuelle_defaut) {
       document.getElementById("cotisationMensuelle").value =
         data.data.cotisation_mensuelle_defaut;
@@ -23,19 +19,18 @@ async function chargerCotisationDefaut() {
 
 async function chargerReunions() {
   try {
-    const response = await fetch(`${API_URL}/reunions`);
-    const data = await response.json();
+    const data = await apiFetch("/reunions");
 
     document.getElementById("loading").style.display = "none";
 
-    if (data.success && data.data) {
+    if (data.success && data.data.length) {
       reunions = data.data;
       afficherReunions(reunions);
       document.getElementById("reunionsTable").style.display = "block";
-      document.getElementById("emptyState").style.display = "none";
+      document.getElementById("emptyState").classList.add("hidden");
     } else {
       document.getElementById("reunionsTable").style.display = "none";
-      document.getElementById("emptyState").style.display = "block";
+      document.getElementById("emptyState").classList.remove("hidden");
     }
   } catch (error) {
     console.error(error);
@@ -49,16 +44,15 @@ function afficherReunions(reunions) {
   tbody.innerHTML = "";
 
   reunions.forEach((r) => {
-    const dateFormatee = new Date(r.date_reunion).toLocaleDateString("fr-FR");
     const statutBadge =
       r.statut === "en_cours"
-        ? '<span style="padding: 5px 10px; background: #28a745; color: white; border-radius: 5px;">En cours</span>'
-        : '<span style="padding: 5px 10px; background: #6c757d; color: white; border-radius: 5px;">Clôturée</span>';
+        ? '<span class="badge badge-info">En cours</span>'
+        : '<span class="badge badge-muted">Clôturée</span>';
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong>${r.titre || "Sans titre"}</strong></td>
-      <td>${dateFormatee}</td>
+      <td>${formatDate(r.date_reunion)}</td>
       <td>${r.projet_nom || "—"}</td>
       <td>${statutBadge}</td>
       <td>
@@ -71,7 +65,7 @@ function afficherReunions(reunions) {
         `
             : ""
         }
-        <button class="btn btn-sm btn-danger" onclick="ouvrirModalSuppression(${r.id})">🗑️ Supprimer</button>
+        <button class="btn btn-sm btn-danger" onclick="supprimerReunion(${r.id})">🗑️ Supprimer</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -81,8 +75,7 @@ function afficherReunions(reunions) {
 // Charger les projets en cours pour le select
 async function chargerProjetsEnCours() {
   try {
-    const res = await fetch(`${API_URL}/projets`);
-    const data = await res.json();
+    const data = await apiFetch("/projets");
     const select = document.getElementById("projetId");
     select.innerHTML = '<option value="">-- Aucun projet --</option>';
 
@@ -100,26 +93,22 @@ async function chargerProjetsEnCours() {
 
 // Modal Création
 function ouvrirModalCreation() {
-  document.getElementById("modalTitle").textContent =
-    "Créer une nouvelle réunion";
+  document.getElementById("modalTitle").textContent = "Créer une nouvelle réunion";
   document.getElementById("reunionId").value = "";
   document.getElementById("titre").value = "";
-  document.getElementById("dateReunion").value = new Date()
-    .toISOString()
-    .split("T")[0];
+  document.getElementById("dateReunion").value = new Date().toISOString().split("T")[0];
   document.getElementById("projetId").value = "";
   document.getElementById("cotisationMensuelle").value = "";
   document.getElementById("champCotisation").style.display = "block";
   document.getElementById("btnSubmit").textContent = "Créer la réunion";
   chargerCotisationDefaut();
-  document.getElementById("modal").style.display = "flex";
+  openModal("modal");
 }
 
 // Modal Modification
 async function ouvrirModalModification(id) {
   try {
-    const res = await fetch(`${API_URL}/reunions/${id}`);
-    const data = await res.json();
+    const data = await apiFetch(`/reunions/${id}`);
 
     if (data.success) {
       const r = data.data;
@@ -129,28 +118,12 @@ async function ouvrirModalModification(id) {
       document.getElementById("dateReunion").value = r.date_reunion;
       document.getElementById("projetId").value = r.projet_id || "";
       document.getElementById("champCotisation").style.display = "none";
-      document.getElementById("btnSubmit").textContent =
-        "Enregistrer les modifications";
-      document.getElementById("modal").style.display = "flex";
+      document.getElementById("btnSubmit").textContent = "Enregistrer les modifications";
+      openModal("modal");
     }
   } catch (e) {
     afficherAlert("Erreur lors du chargement", "danger");
   }
-}
-
-function fermerModal() {
-  document.getElementById("modal").style.display = "none";
-  document.getElementById("reunionForm").reset();
-}
-
-function ouvrirModalSuppression(id) {
-  reunionASupprimer = id;
-  document.getElementById("modalConfirm").style.display = "flex";
-}
-
-function fermerModalConfirm() {
-  reunionASupprimer = null;
-  document.getElementById("modalConfirm").style.display = "none";
 }
 
 // Soumission du formulaire (Créer ou Modifier)
@@ -171,26 +144,20 @@ document.getElementById("reunionForm").addEventListener("submit", async (e) => {
   }
 
   try {
-    const url = id ? `${API_URL}/reunions/${id}` : `${API_URL}/reunions`;
-    const method = id ? "PUT" : "POST";
-
     const body = { titre, date_reunion: dateReunion, projet_id: projetId };
     if (!id && cotisationMensuelle !== null) {
       body.cotisation_mensuelle = cotisationMensuelle;
     }
 
-    const response = await fetch(url, {
-      method: method,
-      headers: { "Content-Type": "application/json" },
+    const data = await apiFetch(`/reunions${id ? "/" + id : ""}`, {
+      method: id ? "PUT" : "POST",
       body: JSON.stringify(body),
     });
 
-    const data = await response.json();
-
     if (data.success) {
       afficherAlert(data.message, "success");
-      fermerModal();
-      setTimeout(() => location.reload(), 1200);
+      closeModal("modal");
+      chargerReunions();
     } else {
       afficherAlert(data.message, "danger");
     }
@@ -202,13 +169,15 @@ document.getElementById("reunionForm").addEventListener("submit", async (e) => {
 
 // Clôturer réunion
 async function cloturerReunion(id) {
-  if (!confirm("Clôturer cette réunion ?")) return;
+  const ok = await confirmModal({
+    title: "Clôturer la réunion",
+    message: "Une fois clôturée, les cotisations de cette réunion ne pourront plus être modifiées.",
+    confirmText: "Clôturer",
+  });
+  if (!ok) return;
 
   try {
-    const res = await fetch(`${API_URL}/reunions/${id}/cloture`, {
-      method: "PUT",
-    });
-    const data = await res.json();
+    const data = await apiFetch(`/reunions/${id}/cloture`, { method: "PUT" });
 
     if (data.success) {
       afficherAlert(data.message, "success");
@@ -221,19 +190,20 @@ async function cloturerReunion(id) {
   }
 }
 
-// Confirmation suppression
-async function confirmerSuppression() {
-  if (!reunionASupprimer) return;
+// Suppression
+async function supprimerReunion(id) {
+  const ok = await confirmModal({
+    title: "Supprimer la réunion",
+    message: "Cette action est irréversible et supprimera aussi les cotisations liées.",
+    confirmText: "Supprimer",
+  });
+  if (!ok) return;
 
   try {
-    const res = await fetch(`${API_URL}/reunions/${reunionASupprimer}`, {
-      method: "DELETE",
-    });
-    const data = await res.json();
+    const data = await apiFetch(`/reunions/${id}`, { method: "DELETE" });
 
     if (data.success) {
       afficherAlert(data.message, "success");
-      fermerModalConfirm();
       chargerReunions();
     } else {
       afficherAlert(data.message, "danger");
@@ -242,16 +212,3 @@ async function confirmerSuppression() {
     afficherAlert("Erreur lors de la suppression", "danger");
   }
 }
-
-function afficherAlert(message, type) {
-  const alert = document.getElementById("alert");
-  alert.className = `alert alert-${type} show`;
-  alert.textContent = message;
-  setTimeout(() => alert.classList.remove("show"), 5000);
-}
-
-// Fermer modals en cliquant dehors
-window.addEventListener("click", (e) => {
-  if (e.target.id === "modal") fermerModal();
-  if (e.target.id === "modalConfirm") fermerModalConfirm();
-});

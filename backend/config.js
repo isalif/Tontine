@@ -1,12 +1,13 @@
 module.exports = {
   db: {
-    host: "localhost",
-    user: "root",
-    password: "", // Mettez votre mot de passe MySQL ici
-    database: "tontine_db",
+    host: process.env.DB_HOST || "localhost",
+    port: Number(process.env.DB_PORT) || 3306,
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "tontine_db",
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
   },
-  port: 3000, // Port du serveur Express
+  port: Number(process.env.PORT) || 3000, // Port du serveur Express
 };

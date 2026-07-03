@@ -33,9 +33,9 @@ class Membre {
   // Créer un nouveau membre (sans cotisation spéciale)
   static async create(nom, prenom, numero, abonneAnnuel = false) {
     const [result] = await db.query(
-      `INSERT INTO membres 
-       (nom, prenom, numero, actif, abonne_annuel) 
-       VALUES (?, ?, ?, TRUE, ?)`,
+      `INSERT INTO membres
+       (nom, prenom, numero, date_ajout, actif, abonne_annuel)
+       VALUES (?, ?, ?, CURDATE(), TRUE, ?)`,
       [nom.trim(), prenom.trim(), numero.trim(), abonneAnnuel],
     );
     return result.insertId;

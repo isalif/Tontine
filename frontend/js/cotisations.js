@@ -1,4 +1,3 @@
-const API_URL = "http://localhost:3000/api";
 let reunionId = null;
 let cotisations = [];
 let reunionInfo = null;
@@ -11,7 +10,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if (!reunionId) {
     afficherAlert("Aucune réunion sélectionnée", "danger");
     document.getElementById("loading").style.display = "none";
-    document.getElementById("emptyState").style.display = "block";
+    document.getElementById("emptyState").classList.remove("hidden");
     return;
   }
 
@@ -26,81 +25,57 @@ function ouvrirModalModification(id) {
   if (!cotisation) return;
 
   document.getElementById("cotisationId").value = cotisation.id;
-  document.getElementById("membreNom").textContent =
-    `${cotisation.nom} ${cotisation.prenom}`;
-  document.getElementById("cotisationMensuelle").value =
-    cotisation.cotisation_mensuelle || 0;
+  document.getElementById("membreNom").textContent = `${cotisation.nom} ${cotisation.prenom}`;
+  document.getElementById("cotisationMensuelle").value = cotisation.cotisation_mensuelle || 0;
   document.getElementById("penalite").value = cotisation.penalite || 0;
 
-  document.getElementById("modalCotisation").style.display = "flex";
-}
-
-function fermerModalCotisation() {
-  document.getElementById("modalCotisation").style.display = "none";
-  document.getElementById("cotisationForm").reset();
-}
-
-function ouvrirModalConfiguration() {
-  document.getElementById("modalConfig").style.display = "flex";
-}
-
-function fermerModalConfig() {
-  document.getElementById("modalConfig").style.display = "none";
+  openModal("modalCotisation");
 }
 
 // ====================== SOUMISSION FORMULAIRE COTISATION ======================
-document
-  .getElementById("cotisationForm")
-  .addEventListener("submit", async (e) => {
-    e.preventDefault();
+document.getElementById("cotisationForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    const id = document.getElementById("cotisationId").value;
-    const cotisationMensuelle =
-      parseFloat(document.getElementById("cotisationMensuelle").value) || 0;
-    const penalite = parseFloat(document.getElementById("penalite").value) || 0;
+  const id = document.getElementById("cotisationId").value;
+  const cotisationMensuelle = parseFloat(document.getElementById("cotisationMensuelle").value) || 0;
+  const penalite = parseFloat(document.getElementById("penalite").value) || 0;
 
-    try {
-      const response = await fetch(`${API_URL}/cotisations/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cotisation_mensuelle: cotisationMensuelle,
-          penalite: penalite,
-        }),
-      });
+  try {
+    const data = await apiFetch(`/cotisations/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        cotisation_mensuelle: cotisationMensuelle,
+        penalite: penalite,
+      }),
+    });
 
-      const data = await response.json();
-
-      if (data.success) {
-        afficherAlert(data.message, "success");
-        fermerModalCotisation();
-        chargerCotisations();
-      } else {
-        afficherAlert(data.message, "danger");
-      }
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour:", error);
-      afficherAlert("Erreur de connexion au serveur", "danger");
+    if (data.success) {
+      afficherAlert(data.message, "success");
+      closeModal("modalCotisation");
+      chargerCotisations();
+    } else {
+      afficherAlert(data.message, "danger");
     }
-  });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour:", error);
+    afficherAlert("Erreur de connexion au serveur", "danger");
+  }
+});
 
 // ====================== CHARGEMENT ======================
 async function chargerReunion() {
   try {
-    const response = await fetch(`${API_URL}/reunions/${reunionId}`);
-    const data = await response.json();
+    const data = await apiFetch(`/reunions/${reunionId}`);
 
     if (data.success) {
       reunionInfo = data.data;
-      const date = new Date(reunionInfo.date_reunion);
       document.getElementById("headerDate").textContent =
-        `Réunion du ${date.toLocaleDateString("fr-FR")}`;
+        `Réunion du ${formatDate(reunionInfo.date_reunion)}${reunionInfo.titre ? " · " + reunionInfo.titre : ""}`;
 
       if (reunionInfo.statut === "cloturee") {
         const btnCloture = document.getElementById("btnCloture");
         btnCloture.disabled = true;
         btnCloture.textContent = "🔒 Réunion clôturée";
-        btnCloture.style.opacity = "0.6";
       }
     }
   } catch (error) {
@@ -110,8 +85,7 @@ async function chargerReunion() {
 
 async function chargerCotisations() {
   try {
-    const response = await fetch(`${API_URL}/cotisations/reunion/${reunionId}`);
-    const data = await response.json();
+    const data = await apiFetch(`/cotisations/reunion/${reunionId}`);
 
     document.getElementById("loading").style.display = "none";
 
@@ -119,10 +93,10 @@ async function chargerCotisations() {
       cotisations = data.data;
       afficherCotisations(cotisations);
       document.getElementById("cotisationsTable").style.display = "block";
-      document.getElementById("emptyState").style.display = "none";
+      document.getElementById("emptyState").classList.add("hidden");
     } else {
       document.getElementById("cotisationsTable").style.display = "none";
-      document.getElementById("emptyState").style.display = "block";
+      document.getElementById("emptyState").classList.remove("hidden");
     }
   } catch (error) {
     console.error("Erreur chargement cotisations:", error);
@@ -134,20 +108,30 @@ async function chargerCotisations() {
 function afficherCotisations(liste) {
   const tbody = document.getElementById("cotisationsBody");
   tbody.innerHTML = "";
+  const cloturee = reunionInfo && reunionInfo.statut === "cloturee";
 
   liste.forEach((c) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong>${c.nom} ${c.prenom}</strong></td>
       <td>${c.numero}</td>
+      <td>
+        <input
+          type="checkbox"
+          class="presence-checkbox"
+          ${c.present ? "checked" : ""}
+          ${cloturee ? "disabled" : ""}
+          onchange="togglePresence(${c.membre_id}, this.checked)"
+        />
+      </td>
       <td>${formatMontant(c.cotisation_mensuelle)} FCFA</td>
       <td>${formatMontant(c.penalite)} FCFA</td>
       <td><strong>${formatMontant(c.total)} FCFA</strong></td>
       <td>
         ${
-          reunionInfo && reunionInfo.statut === "en_cours"
+          !cloturee
             ? `<button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${c.id})">✏️ Modifier</button>`
-            : '<span style="color: #6c757d;">Réunion clôturée</span>'
+            : '<span style="color: var(--color-text-muted);">Réunion clôturée</span>'
         }
       </td>
     `;
@@ -155,22 +139,40 @@ function afficherCotisations(liste) {
   });
 }
 
-function formatMontant(montant) {
-  return new Intl.NumberFormat("fr-FR").format(montant || 0);
+async function togglePresence(membreId, present) {
+  try {
+    const data = await apiFetch(`/cotisations/presence/${reunionId}/${membreId}`, {
+      method: "PUT",
+      body: JSON.stringify({ present }),
+    });
+    if (data.success) {
+      const c = cotisations.find((x) => x.membre_id === membreId);
+      if (c) c.present = present;
+      toast(present ? "Membre marqué présent" : "Membre marqué absent", "success");
+    } else {
+      afficherAlert(data.message, "danger");
+    }
+  } catch (e) {
+    afficherAlert("Erreur lors de la mise à jour de la présence", "danger");
+  }
 }
 
 async function cloturerReunion() {
-  if (!confirm("Êtes-vous sûr de vouloir clôturer cette réunion ?")) return;
+  const ok = await confirmModal({
+    title: "Clôturer la réunion",
+    message: "Les cotisations et présences de cette réunion ne pourront plus être modifiées.",
+    confirmText: "Clôturer",
+  });
+  if (!ok) return;
 
   try {
-    const response = await fetch(`${API_URL}/reunions/${reunionId}/cloture`, {
-      method: "PUT",
-    });
-    const data = await response.json();
+    const data = await apiFetch(`/reunions/${reunionId}/cloture`, { method: "PUT" });
 
     if (data.success) {
       afficherAlert(data.message, "success");
-      setTimeout(() => location.reload(), 1500);
+      reunionInfo.statut = "cloturee";
+      chargerReunion();
+      chargerCotisations();
     } else {
       afficherAlert(data.message, "danger");
     }
@@ -181,14 +183,11 @@ async function cloturerReunion() {
 
 async function chargerConfiguration() {
   try {
-    const response = await fetch(`${API_URL}/cotisations/configuration`);
-    const data = await response.json();
+    const data = await apiFetch("/cotisations/configuration");
 
     if (data.success) {
-      document.getElementById("configMensuelle").value =
-        data.data.cotisation_mensuelle_defaut || 0;
-      document.getElementById("configPenalite").value =
-        data.data.penalite_retard_defaut || 0;
+      document.getElementById("configMensuelle").value = data.data.cotisation_mensuelle_defaut || 0;
+      document.getElementById("configPenalite").value = data.data.penalite_retard_defaut || 0;
     }
   } catch (error) {
     console.error("Erreur configuration:", error);
@@ -200,18 +199,16 @@ document.getElementById("configForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   try {
-    await fetch(`${API_URL}/cotisations/configuration`, {
+    await apiFetch("/cotisations/configuration", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         cle: "cotisation_mensuelle_defaut",
         valeur: document.getElementById("configMensuelle").value,
       }),
     });
 
-    await fetch(`${API_URL}/cotisations/configuration`, {
+    await apiFetch("/cotisations/configuration", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         cle: "penalite_retard_defaut",
         valeur: document.getElementById("configPenalite").value,
@@ -219,30 +216,66 @@ document.getElementById("configForm").addEventListener("submit", async (e) => {
     });
 
     afficherAlert("Configuration mise à jour avec succès", "success");
-    fermerModalConfig();
+    closeModal("modalConfig");
   } catch (error) {
-    afficherAlert(
-      "Erreur lors de la mise à jour de la configuration",
-      "danger",
-    );
+    afficherAlert("Erreur lors de la mise à jour de la configuration", "danger");
   }
 });
 
-function afficherAlert(message, type) {
-  const alert = document.getElementById("alert");
-  alert.className = `alert alert-${type} show`;
-  alert.textContent = message;
+// ====================== EXPORT PDF (feuille de présence) ======================
+function exporterPDF() {
+  if (!cotisations.length || !reunionInfo) {
+    afficherAlert("Aucune donnée à exporter", "danger");
+    return;
+  }
 
-  setTimeout(() => {
-    alert.classList.remove("show");
-  }, 5000);
+  try {
+    const dateFormatee = formatDate(reunionInfo.date_reunion);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(20);
+    doc.setFont(undefined, "bold");
+    doc.text("LISTE DE PRESENCE", 105, 20, { align: "center" });
+
+    doc.setFontSize(12);
+    doc.setFont(undefined, "normal");
+    doc.text("Date : " + dateFormatee, 105, 30, { align: "center" });
+
+    if (reunionInfo.titre) {
+      doc.text(reunionInfo.titre, 105, 37, { align: "center" });
+    }
+
+    doc.setLineWidth(0.5);
+    doc.line(20, 42, 190, 42);
+
+    let yPos = 52;
+    doc.setFontSize(11);
+
+    cotisations.forEach((c, index) => {
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+      const marque = c.present ? "[x]" : "[ ]";
+      doc.text(`${index + 1}. ${marque} ${c.nom} ${c.prenom} - ${c.numero}`, 20, yPos);
+      yPos += 7;
+    });
+
+    yPos += 5;
+    doc.setLineWidth(0.5);
+    doc.line(20, yPos, 190, yPos);
+    yPos += 7;
+
+    const totalPresents = cotisations.filter((c) => c.present).length;
+    doc.setFontSize(12);
+    doc.setFont(undefined, "bold");
+    doc.text(`Total : ${totalPresents} / ${cotisations.length} membres présents`, 20, yPos);
+
+    doc.save(`liste_presence_${reunionInfo.date_reunion}.pdf`);
+    afficherAlert("PDF téléchargé avec succès !", "success");
+  } catch (error) {
+    console.error("Erreur lors de la génération du PDF:", error);
+    afficherAlert("Erreur lors de la génération du PDF", "danger");
+  }
 }
-
-// Fermer les modals en cliquant à l'extérieur
-window.addEventListener("click", (e) => {
-  const modalCotisation = document.getElementById("modalCotisation");
-  const modalConfig = document.getElementById("modalConfig");
-
-  if (e.target === modalCotisation) fermerModalCotisation();
-  if (e.target === modalConfig) fermerModalConfig();
-});

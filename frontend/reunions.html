@@ -3,68 +3,76 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestion des Réunions - Tontine</title>
+    <title>Réunions — Ressortissants de Kalfou</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>📅 Gestion des Réunions</h1>
-        <p>Créer et gérer les réunions mensuelles</p>
-      </div>
-
-      <nav class="nav">
-        <ul>
-          <li><a href="index.html">Accueil</a></li>
-          <li><a href="membres.html">Membres</a></li>
-          <li><a href="reunions.html" class="active">Réunions</a></li>
-          <li><a href="projets.html">Projets</a></li>
-          <li>
-            <a href="cotisations-special.html">Cotisations Spéciales</a>
-          </li>
-          <li><a href="listes-presence.html">Listes de présence</a></li>
-        </ul>
-      </nav>
-
-      <div class="content">
-        <div id="alert" class="alert"></div>
-
-        <div class="d-flex justify-between align-center mb-20">
-          <h2>Liste des réunions</h2>
-          <button class="btn btn-success" onclick="ouvrirModalCreation()">
-            ➕ Nouvelle réunion
-          </button>
-        </div>
-
-        <div id="loading" class="loading">
-          <div class="spinner"></div>
-          <p>Chargement des réunions...</p>
-        </div>
-
-        <div id="reunionsTable">
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Titre</th>
-                  <th>Date</th>
-                  <th>Projet lié</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="reunionsBody"></tbody>
-            </table>
+  <body data-page="reunions">
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-icon">💰</span>
+          <div class="sidebar-brand-text">
+            <strong>Ressortissants</strong>
+            <small>de Kalfou · Niamey</small>
           </div>
         </div>
-
-        <div id="emptyState" class="empty-state">
-          <h3>Aucune réunion</h3>
-          <p>Créez votre première réunion pour commencer</p>
-          <button class="btn btn-success mt-20" onclick="ouvrirModalCreation()">
-            ➕ Nouvelle réunion
-          </button>
+        <nav class="sidebar-nav">
+          <a href="/" data-page="index" class="nav-link"><span class="nav-icon">🏠</span>Tableau de bord</a>
+          <a href="/membres" data-page="membres" class="nav-link"><span class="nav-icon">👥</span>Membres</a>
+          <a href="/reunions" data-page="reunions" class="nav-link"><span class="nav-icon">📅</span>Réunions</a>
+          <a href="/projets" data-page="projets" class="nav-link"><span class="nav-icon">🎯</span>Projets</a>
+          <a href="/cotisations-special" data-page="cotisations-special" class="nav-link"><span class="nav-icon">💎</span>Cotisations spéciales</a>
+        </nav>
+        <div class="sidebar-footer">
+          <small>Application de gestion de tontine</small>
         </div>
+      </aside>
+      <div class="sidebar-backdrop"></div>
+
+      <div class="app-main">
+        <header class="topbar">
+          <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">☰</button>
+          <div class="topbar-title">
+            <h1>Réunions</h1>
+            <p>Créer et gérer les réunions mensuelles</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-success" onclick="ouvrirModalCreation()">➕ Nouvelle réunion</button>
+          </div>
+        </header>
+
+        <main class="content">
+          <div id="alert" class="alert"></div>
+
+          <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Chargement des réunions...</p>
+          </div>
+
+          <div id="reunionsTable">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Titre</th>
+                    <th>Date</th>
+                    <th>Projet lié</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="reunionsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <div class="empty-state-icon">📅</div>
+            <h3>Aucune réunion</h3>
+            <p>Créez votre première réunion pour commencer</p>
+            <button class="btn btn-success mt-20" onclick="ouvrirModalCreation()">➕ Nouvelle réunion</button>
+          </div>
+        </main>
       </div>
     </div>
 
@@ -73,6 +81,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 id="modalTitle">Créer une réunion</h2>
+          <button type="button" class="modal-close" data-close="modal">✕</button>
         </div>
         <form id="reunionForm">
           <input type="hidden" id="reunionId" />
@@ -117,50 +126,14 @@
           </div>
 
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="fermerModal()"
-            >
-              Annuler
-            </button>
-            <button type="submit" class="btn btn-success" id="btnSubmit">
-              Créer la réunion
-            </button>
+            <button type="button" class="btn btn-secondary" data-close="modal">Annuler</button>
+            <button type="submit" class="btn btn-success" id="btnSubmit">Créer la réunion</button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Modal Confirmation Suppression -->
-    <div id="modalConfirm" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>⚠️ Confirmation</h2>
-        </div>
-        <p>
-          Êtes-vous sûr de vouloir supprimer cette réunion ? Cette action est
-          irréversible.
-        </p>
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            onclick="fermerModalConfirm()"
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            class="btn btn-danger"
-            onclick="confirmerSuppression()"
-          >
-            Supprimer
-          </button>
-        </div>
-      </div>
-    </div>
-
+    <script src="js/common.js"></script>
     <script src="js/reunions.js"></script>
   </body>
 </html>

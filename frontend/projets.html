@@ -3,80 +3,88 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestion des Projets - Tontine</title>
+    <title>Projets — Ressortissants de Kalfou</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>📋 Gestion des Projets</h1>
-        <p>Suivre et gérer les projets financés par les cotisations</p>
-      </div>
-
-      <nav class="nav">
-        <ul>
-          <li><a href="index.html">Accueil</a></li>
-          <li><a href="membres.html">Membres</a></li>
-          <li><a href="reunions.html">Réunions</a></li>
-          <li><a href="projets.html" class="active">Projets</a></li>
-          <li><a href="cotisations-special.html">Cotisations Spéciales</a></li>
-          <li><a href="listes-presence.html">Listes de présence</a></li>
-        </ul>
-      </nav>
-
-      <div class="content">
-        <div id="alert" class="alert"></div>
-
-        <div class="d-flex justify-between align-center mb-20">
-          <h2>Liste des projets</h2>
-          <button class="btn btn-primary" onclick="ouvrirModalAjout()">
-            ➕ Nouveau projet
-          </button>
-        </div>
-
-        <div class="form-group">
-          <input
-            type="text"
-            id="filtreInput"
-            class="form-control"
-            placeholder="🔍 Rechercher par nom ou description..."
-            oninput="filtrerProjets()"
-          />
-        </div>
-
-        <div id="loading" class="loading">
-          <div class="spinner"></div>
-          <p>Chargement des projets...</p>
-        </div>
-
-        <div id="projetsTable">
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nom du projet</th>
-                  <th>Description</th>
-                  <th>Montant cible</th>
-                  <th>Montant collecté</th>
-                  <th>Avancement</th>
-                  <th>Date début</th>
-                  <th>Date fin</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="projetsBody"></tbody>
-            </table>
+  <body data-page="projets">
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-icon">💰</span>
+          <div class="sidebar-brand-text">
+            <strong>Ressortissants</strong>
+            <small>de Kalfou · Niamey</small>
           </div>
         </div>
-
-        <div id="emptyState" class="empty-state">
-          <h3>Aucun projet</h3>
-          <p>Commencez par créer votre premier projet</p>
-          <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()">
-            ➕ Nouveau projet
-          </button>
+        <nav class="sidebar-nav">
+          <a href="/" data-page="index" class="nav-link"><span class="nav-icon">🏠</span>Tableau de bord</a>
+          <a href="/membres" data-page="membres" class="nav-link"><span class="nav-icon">👥</span>Membres</a>
+          <a href="/reunions" data-page="reunions" class="nav-link"><span class="nav-icon">📅</span>Réunions</a>
+          <a href="/projets" data-page="projets" class="nav-link"><span class="nav-icon">🎯</span>Projets</a>
+          <a href="/cotisations-special" data-page="cotisations-special" class="nav-link"><span class="nav-icon">💎</span>Cotisations spéciales</a>
+        </nav>
+        <div class="sidebar-footer">
+          <small>Application de gestion de tontine</small>
         </div>
+      </aside>
+      <div class="sidebar-backdrop"></div>
+
+      <div class="app-main">
+        <header class="topbar">
+          <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">☰</button>
+          <div class="topbar-title">
+            <h1>Projets</h1>
+            <p>Suivre et gérer les projets financés par les cotisations</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-primary" onclick="ouvrirModalAjout()">➕ Nouveau projet</button>
+          </div>
+        </header>
+
+        <main class="content">
+          <div id="alert" class="alert"></div>
+
+          <div class="form-group">
+            <input
+              type="text"
+              id="filtreInput"
+              class="form-control"
+              placeholder="🔍 Rechercher par nom ou description..."
+              oninput="filtrerProjets()"
+            />
+          </div>
+
+          <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Chargement des projets...</p>
+          </div>
+
+          <div id="projetsTable">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nom du projet</th>
+                    <th>Montant cible</th>
+                    <th>Collecté</th>
+                    <th>Avancement</th>
+                    <th>Échéance</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="projetsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <div class="empty-state-icon">🎯</div>
+            <h3>Aucun projet</h3>
+            <p>Commencez par créer votre premier projet</p>
+            <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()">➕ Nouveau projet</button>
+          </div>
+        </main>
       </div>
     </div>
 
@@ -85,6 +93,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 id="modalTitle">Nouveau projet</h2>
+          <button type="button" class="modal-close" data-close="modal">✕</button>
         </div>
         <form id="projetForm">
           <input type="hidden" id="projetId" />
@@ -95,29 +104,24 @@
           </div>
 
           <div class="form-group">
-            <label for="description">Description *</label>
+            <label for="description">Description</label>
             <textarea id="description" class="form-control" rows="3"></textarea>
           </div>
 
           <div class="form-group">
             <label for="montantCible">Montant cible (FCFA) *</label>
-            <input
-              type="number"
-              id="montantCible"
-              class="form-control"
-              min="0"
-              required
-            />
+            <input type="number" id="montantCible" class="form-control" min="0" required />
           </div>
 
-          <div class="form-group">
-            <label for="dateDebut">Date de début</label>
-            <input type="date" id="dateDebut" class="form-control" />
-          </div>
-
-          <div class="form-group">
-            <label for="dateFin">Date de fin</label>
-            <input type="date" id="dateFin" class="form-control" />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dateDebut">Date de début</label>
+              <input type="date" id="dateDebut" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="dateFin">Date de fin</label>
+              <input type="date" id="dateFin" class="form-control" />
+            </div>
           </div>
 
           <div class="form-group">
@@ -130,81 +134,61 @@
           </div>
 
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="fermerModal()"
-            >
-              Annuler
-            </button>
+            <button type="button" class="btn btn-secondary" data-close="modal">Annuler</button>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Nouveau Modal Configuration par Projet -->
+    <!-- Modal Configuration par Projet -->
     <div id="modalConfig" class="modal">
       <div class="modal-content">
         <div class="modal-header">
           <h2 id="configTitle">Configuration du projet</h2>
+          <button type="button" class="modal-close" data-close="modalConfig">✕</button>
         </div>
         <form id="configForm">
           <input type="hidden" id="configProjetId" />
 
           <div class="form-group">
-            <label for="montantParReunion"
-              >Montant à payer par réunion (FCFA)</label
-            >
-            <input
-              type="number"
-              id="montantParReunion"
-              class="form-control"
-              min="0"
-              required
-            />
+            <label for="montantParReunion">Montant à payer par réunion (FCFA)</label>
+            <input type="number" id="montantParReunion" class="form-control" min="0" required />
           </div>
 
           <div class="form-group">
             <label for="montantAnnuel">Montant annuel (FCFA)</label>
-            <input
-              type="number"
-              id="montantAnnuel"
-              class="form-control"
-              min="0"
-              required
-            />
+            <input type="number" id="montantAnnuel" class="form-control" min="0" required />
           </div>
 
           <div class="form-group">
-            <label for="penaliteRetard"
-              >Pénalité de retard par réunion (FCFA)</label
-            >
-            <input
-              type="number"
-              id="penaliteRetard"
-              class="form-control"
-              min="0"
-              required
-            />
+            <label for="penaliteRetard">Pénalité de retard par réunion (FCFA)</label>
+            <input type="number" id="penaliteRetard" class="form-control" min="0" required />
           </div>
 
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="fermerModalConfig()"
-            >
-              Annuler
-            </button>
-            <button type="submit" class="btn btn-primary">
-              Enregistrer la configuration
-            </button>
+            <button type="button" class="btn btn-secondary" data-close="modalConfig">Annuler</button>
+            <button type="submit" class="btn btn-primary">Enregistrer la configuration</button>
           </div>
         </form>
       </div>
     </div>
 
+    <!-- Modal Détail Projet -->
+    <div id="modalDetail" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="detailTitle">Détail du projet</h2>
+          <button type="button" class="modal-close" data-close="modalDetail">✕</button>
+        </div>
+        <div id="detailBody" class="card-body"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modalDetail">Fermer</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/common.js"></script>
     <script src="js/projets.js"></script>
   </body>
 </html>

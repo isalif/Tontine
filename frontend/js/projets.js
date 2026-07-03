@@ -1,6 +1,3 @@
-const API = "http://localhost:3000/api";
-
-// Chargement initial
 window.addEventListener("DOMContentLoaded", () => {
   chargerProjets();
 });
@@ -8,65 +5,59 @@ window.addEventListener("DOMContentLoaded", () => {
 async function chargerProjets() {
   document.getElementById("loading").style.display = "flex";
   document.getElementById("projetsTable").style.display = "none";
-  document.getElementById("emptyState").style.display = "none";
+  document.getElementById("emptyState").classList.add("hidden");
 
   try {
-    const res = await fetch(`${API}/projets`);
-    const data = await res.json();
+    const data = await apiFetch("/projets");
     afficherProjets(data.data || []);
   } catch (e) {
-    afficherAlerte("Erreur lors du chargement des projets", "danger");
+    afficherAlert("Erreur lors du chargement des projets", "danger");
   } finally {
     document.getElementById("loading").style.display = "none";
   }
 }
+
+const STATUT_BADGES = {
+  en_cours: '<span class="badge badge-info">🔵 En cours</span>',
+  termine: '<span class="badge badge-success">🟢 Terminé</span>',
+  annule: '<span class="badge badge-danger">🔴 Annulé</span>',
+};
 
 function afficherProjets(projets) {
   const tbody = document.getElementById("projetsBody");
   tbody.innerHTML = "";
 
   if (projets.length === 0) {
-    document.getElementById("emptyState").style.display = "block";
+    document.getElementById("emptyState").classList.remove("hidden");
+    document.getElementById("projetsTable").style.display = "none";
     return;
   }
 
   document.getElementById("projetsTable").style.display = "block";
-  document.getElementById("emptyState").style.display = "none";
+  document.getElementById("emptyState").classList.add("hidden");
 
   projets.forEach((p) => {
     const collecte = parseFloat(p.montant_collecte) || 0;
     const cible = parseFloat(p.montant_cible) || 0;
-    const pct =
-      cible > 0 ? Math.min(100, Math.round((collecte / cible) * 100)) : 0;
-
-    const statutBadge =
-      {
-        en_cours:
-          '<span style="color:#1976d2;font-weight:600;">🔵 En cours</span>',
-        termine:
-          '<span style="color:#388e3c;font-weight:600;">🟢 Terminé</span>',
-        annule: '<span style="color:#d32f2f;font-weight:600;">🔴 Annulé</span>',
-      }[p.statut] || p.statut;
+    const pct = cible > 0 ? Math.min(100, Math.round((collecte / cible) * 100)) : 0;
+    const barClass = pct >= 100 ? "success" : pct >= 50 ? "warning" : "danger";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong>${p.nom}</strong></td>
-      <td>${p.description || "—"}</td>
-      <td>${cible.toLocaleString("fr-FR")} FCFA</td>
-      <td>${collecte.toLocaleString("fr-FR")} FCFA</td>
+      <td>${formatMontant(cible)} FCFA</td>
+      <td>${formatMontant(collecte)} FCFA</td>
       <td>
-        <div style="background:#e0e0e0;border-radius:6px;height:14px;overflow:hidden;">
-          <div style="width:${pct}%;height:100%;background:#4CAF50;"></div>
+        <div class="progress-bar-container">
+          <div class="progress-bar ${barClass}" style="width:${pct}%"><span>${pct}%</span></div>
         </div>
-        <small>${pct}%</small>
       </td>
-      <td>${p.date_debut ? new Date(p.date_debut).toLocaleDateString("fr-FR") : "—"}</td>
-      <td>${p.date_fin ? new Date(p.date_fin).toLocaleDateString("fr-FR") : "—"}</td>
-      <td>${statutBadge}</td>
+      <td>${p.date_fin ? formatDate(p.date_fin) : "—"}</td>
+      <td>${STATUT_BADGES[p.statut] || p.statut}</td>
       <td>
         <button class="btn btn-info btn-sm" onclick="voirDetail(${p.id})">👁 Détails</button>
-        <button class="btn btn-secondary btn-sm" onclick="ouvrirModalModifier(${p.id})">✏️ Modifier</button>
-        <button class="btn btn-warning btn-sm" onclick="ouvrirModalConfig(${p.id})">⚙️ Config</button>
+        <button class="btn btn-secondary btn-sm" onclick="ouvrirModalModifier(${p.id})">✏️</button>
+        <button class="btn btn-warning btn-sm" onclick="ouvrirModalConfig(${p.id})">⚙️</button>
         <button class="btn btn-danger btn-sm" onclick="supprimerProjet(${p.id})">🗑️</button>
       </td>
     `;
@@ -78,9 +69,7 @@ function filtrerProjets() {
   const recherche = document.getElementById("filtreInput").value.toLowerCase();
   document.querySelectorAll("#projetsBody tr").forEach((tr) => {
     const nom = tr.cells[0]?.textContent.toLowerCase() || "";
-    const desc = tr.cells[1]?.textContent.toLowerCase() || "";
-    tr.style.display =
-      nom.includes(recherche) || desc.includes(recherche) ? "" : "none";
+    tr.style.display = nom.includes(recherche) ? "" : "none";
   });
 }
 
@@ -89,13 +78,12 @@ function ouvrirModalAjout() {
   document.getElementById("modalTitle").textContent = "Nouveau projet";
   document.getElementById("projetForm").reset();
   document.getElementById("projetId").value = "";
-  document.getElementById("modal").style.display = "flex";
+  openModal("modal");
 }
 
 async function ouvrirModalModifier(id) {
   try {
-    const res = await fetch(`${API}/projets/${id}`);
-    const data = await res.json();
+    const data = await apiFetch(`/projets/${id}`);
     const p = data.data;
 
     document.getElementById("modalTitle").textContent = "Modifier le projet";
@@ -103,22 +91,14 @@ async function ouvrirModalModifier(id) {
     document.getElementById("nom").value = p.nom;
     document.getElementById("description").value = p.description || "";
     document.getElementById("montantCible").value = p.montant_cible;
-    document.getElementById("dateDebut").value = p.date_debut
-      ? p.date_debut.split("T")[0]
-      : "";
-    document.getElementById("dateFin").value = p.date_fin
-      ? p.date_fin.split("T")[0]
-      : "";
+    document.getElementById("dateDebut").value = p.date_debut ? p.date_debut.split("T")[0] : "";
+    document.getElementById("dateFin").value = p.date_fin ? p.date_fin.split("T")[0] : "";
     document.getElementById("statut").value = p.statut;
 
-    document.getElementById("modal").style.display = "flex";
+    openModal("modal");
   } catch (e) {
-    afficherAlerte("Erreur lors du chargement", "danger");
+    afficherAlert("Erreur lors du chargement", "danger");
   }
-}
-
-function fermerModal() {
-  document.getElementById("modal").style.display = "none";
 }
 
 // Soumission formulaire projet
@@ -136,125 +116,126 @@ document.getElementById("projetForm").addEventListener("submit", async (e) => {
   };
 
   try {
-    const res = await fetch(`${API}/projets${id ? "/" + id : ""}`, {
+    const data = await apiFetch(`/projets${id ? "/" + id : ""}`, {
       method: id ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
 
     if (data.success) {
-      afficherAlerte(id ? "Projet modifié !" : "Projet créé !", "success");
-      fermerModal();
+      afficherAlert(id ? "Projet modifié !" : "Projet créé !", "success");
+      closeModal("modal");
       chargerProjets();
     } else {
-      afficherAlerte(data.message || "Erreur", "danger");
+      afficherAlert(data.message || "Erreur", "danger");
     }
   } catch (e) {
-    afficherAlerte("Erreur lors de l'enregistrement", "danger");
+    afficherAlert("Erreur lors de l'enregistrement", "danger");
   }
 });
 
 // ====================== CONFIGURATION ======================
 async function ouvrirModalConfig(id) {
   try {
-    const res = await fetch(`${API}/projets/${id}`);
-    const data = await res.json();
+    const data = await apiFetch(`/projets/${id}`);
     const p = data.data;
 
-    document.getElementById("configTitle").textContent =
-      `Configuration : ${p.nom}`;
+    document.getElementById("configTitle").textContent = `Configuration : ${p.nom}`;
     document.getElementById("configProjetId").value = p.id;
 
-    document.getElementById("montantParReunion").value =
-      p.montant_par_reunion || 5000;
+    document.getElementById("montantParReunion").value = p.montant_par_reunion || 5000;
     document.getElementById("montantAnnuel").value = p.montant_annuel || 60000;
     document.getElementById("penaliteRetard").value = p.penalite_retard || 1000;
 
-    document.getElementById("modalConfig").style.display = "flex";
+    openModal("modalConfig");
   } catch (e) {
-    afficherAlerte("Erreur de chargement de la configuration", "danger");
+    afficherAlert("Erreur de chargement de la configuration", "danger");
   }
 }
 
-function fermerModalConfig() {
-  document.getElementById("modalConfig").style.display = "none";
-}
-
-// Soumission configuration (CORRIGÉE)
 document.getElementById("configForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const projetId = document.getElementById("configProjetId").value;
-  if (!projetId) return afficherAlerte("Aucun projet sélectionné", "danger");
+  if (!projetId) return afficherAlert("Aucun projet sélectionné", "danger");
 
   const payload = {
-    montant_par_reunion:
-      parseFloat(document.getElementById("montantParReunion").value) || 0,
-    montant_annuel:
-      parseFloat(document.getElementById("montantAnnuel").value) || 0,
-    penalite_retard:
-      parseFloat(document.getElementById("penaliteRetard").value) || 0,
+    montant_par_reunion: parseFloat(document.getElementById("montantParReunion").value) || 0,
+    montant_annuel: parseFloat(document.getElementById("montantAnnuel").value) || 0,
+    penalite_retard: parseFloat(document.getElementById("penaliteRetard").value) || 0,
   };
 
   try {
-    const res = await fetch(`${API}/projets/${projetId}/config`, {
+    const data = await apiFetch(`/projets/${projetId}/config`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
-
     if (data.success) {
-      afficherAlerte("✅ Configuration enregistrée avec succès !", "success");
-      fermerModalConfig();
-      chargerProjets(); // Rafraîchit la liste
+      afficherAlert("Configuration enregistrée avec succès !", "success");
+      closeModal("modalConfig");
+      chargerProjets();
     } else {
-      afficherAlerte(data.message || "Erreur inconnue", "danger");
+      afficherAlert(data.message || "Erreur inconnue", "danger");
     }
   } catch (error) {
-    console.error("Erreur:", error);
-    afficherAlerte("Erreur de connexion au serveur", "danger");
+    afficherAlert("Erreur de connexion au serveur", "danger");
   }
 });
 
 async function supprimerProjet(id) {
-  if (!confirm("Supprimer ce projet ?")) return;
+  const ok = await confirmModal({
+    title: "Supprimer le projet",
+    message: "Cette action est irréversible.",
+    confirmText: "Supprimer",
+  });
+  if (!ok) return;
+
   try {
-    const res = await fetch(`${API}/projets/${id}`, { method: "DELETE" });
-    const data = await res.json();
+    const data = await apiFetch(`/projets/${id}`, { method: "DELETE" });
     if (data.success) {
-      afficherAlerte("Projet supprimé", "success");
+      afficherAlert("Projet supprimé", "success");
       chargerProjets();
+    } else {
+      afficherAlert(data.message || "Erreur", "danger");
     }
   } catch (e) {
-    afficherAlerte("Erreur lors de la suppression", "danger");
+    afficherAlert("Erreur lors de la suppression", "danger");
   }
 }
 
 async function voirDetail(id) {
   try {
-    const res = await fetch(`${API}/projets/${id}`);
-    const data = await res.json();
+    const data = await apiFetch(`/projets/${id}`);
     const p = data.data;
+    const collecte = Number(p.montant_collecte || 0);
+    const cible = Number(p.montant_cible || 0);
+    const restant = Math.max(0, cible - collecte);
 
-    let msg = `Nom : ${p.nom}\nDescription : ${p.description || "—"}\nMontant cible : ${Number(p.montant_cible).toLocaleString("fr-FR")} FCFA\nMontant collecté : ${Number(p.montant_collecte || 0).toLocaleString("fr-FR")} FCFA\n\n=== CONFIGURATION ===\nPar réunion : ${Number(p.montant_par_reunion || 0).toLocaleString("fr-FR")} FCFA\nAnnuel : ${Number(p.montant_annuel || 0).toLocaleString("fr-FR")} FCFA\nPénalité retard : ${Number(p.penalite_retard || 0).toLocaleString("fr-FR")} FCFA`;
-    alert(msg);
+    document.getElementById("detailTitle").textContent = p.nom;
+    document.getElementById("detailBody").innerHTML = `
+      <p>${p.description || "Aucune description."}</p>
+      <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0;">
+        <div style="background:var(--color-primary-soft);padding:14px;border-radius:var(--radius-md);text-align:center;">
+          <small>Cible</small>
+          <h3 style="color:var(--color-primary);margin:6px 0 0;font-size:1.15rem;">${formatMontant(cible)} FCFA</h3>
+        </div>
+        <div style="background:var(--color-success-soft);padding:14px;border-radius:var(--radius-md);text-align:center;">
+          <small>Collecté</small>
+          <h3 style="color:var(--color-success);margin:6px 0 0;font-size:1.15rem;">${formatMontant(collecte)} FCFA</h3>
+        </div>
+        <div style="background:var(--color-danger-soft);padding:14px;border-radius:var(--radius-md);text-align:center;">
+          <small>Restant</small>
+          <h3 style="color:var(--color-danger);margin:6px 0 0;font-size:1.15rem;">${formatMontant(restant)} FCFA</h3>
+        </div>
+      </div>
+      <p><strong>Période :</strong> ${p.date_debut ? formatDate(p.date_debut) : "—"} → ${p.date_fin ? formatDate(p.date_fin) : "—"}</p>
+      <p class="mt-10"><strong>Configuration</strong></p>
+      <p>Montant par réunion : ${formatMontant(p.montant_par_reunion)} FCFA</p>
+      <p>Montant annuel : ${formatMontant(p.montant_annuel)} FCFA</p>
+      <p>Pénalité de retard : ${formatMontant(p.penalite_retard)} FCFA</p>
+    `;
+    openModal("modalDetail");
   } catch (e) {
-    afficherAlerte("Erreur de chargement du détail", "danger");
+    afficherAlert("Erreur de chargement du détail", "danger");
   }
 }
-
-function afficherAlerte(msg, type) {
-  const el = document.getElementById("alert");
-  el.textContent = msg;
-  el.className = `alert alert-${type} show`;
-  setTimeout(() => el.classList.remove("show"), 4000);
-}
-
-// Fermeture modals en cliquant dehors
-window.addEventListener("click", (e) => {
-  if (e.target.id === "modal") fermerModal();
-  if (e.target.id === "modalConfig") fermerModalConfig();
-});

@@ -3,201 +3,105 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>💰 Gestion de Ressortissant de Kalfou (Niamey)</title>
+    <title>Tableau de bord — Ressortissants de Kalfou</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
-  <body>
-    <div class="container">
-      <!-- Header -->
-      <div class="header">
-        <h1>💰 Gestion de Ressortissant de Kalfou (Niamey)</h1>
-        <p>Application de gestion des cotisations mensuelles</p>
-      </div>
-
-      <!-- Navigation -->
-      <div class="nav">
-        <ul>
-          <li><a href="/" class="active">Accueil</a></li>
-          <li><a href="membres.html">Membres</a></li>
-          <li><a href="reunions.html">Réunions</a></li>
-          <li><a href="projets.html">Projets</a></li>
-          <li><a href="cotisations-special.html">Cotisations Spéciales</a></li>
-          <li><a href="listes-presence.html">Listes de présence</a></li>
-        </ul>
-      </div>
-
-      <div class="content">
-        <h2>Tableau de bord</h2>
-
-        <!-- Statistiques globales -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <h3 id="membresActifs">0</h3>
-            <p>Membres actifs</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="reunionsTotal">0</h3>
-            <p>Réunions organisées</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="reunionsEnCours">0</h3>
-            <p>Réunions en cours</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="totalProjets">0</h3>
-            <p>Projets totaux</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="projetsEnCoursStat">0</h3>
-            <p>Projets en cours</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="projetsTermines">0</h3>
-            <p>Projets terminés</p>
+  <body data-page="index">
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-icon">💰</span>
+          <div class="sidebar-brand-text">
+            <strong>Ressortissants</strong>
+            <small>de Kalfou · Niamey</small>
           </div>
         </div>
-
-        <!-- Détails du projet sélectionné -->
-        <div class="card">
-          <div class="card-title d-flex justify-between align-center">
-            <span>📊 Projet sélectionné</span>
-            <select
-              id="projetSelect"
-              class="form-control"
-              style="width: auto; max-width: 320px"
-            ></select>
-          </div>
-          <div id="projetDetails" class="card-body">
-            <!-- Rempli par JS -->
-          </div>
+        <nav class="sidebar-nav">
+          <a href="/" data-page="index" class="nav-link"><span class="nav-icon">🏠</span>Tableau de bord</a>
+          <a href="/membres" data-page="membres" class="nav-link"><span class="nav-icon">👥</span>Membres</a>
+          <a href="/reunions" data-page="reunions" class="nav-link"><span class="nav-icon">📅</span>Réunions</a>
+          <a href="/projets" data-page="projets" class="nav-link"><span class="nav-icon">🎯</span>Projets</a>
+          <a href="/cotisations-special" data-page="cotisations-special" class="nav-link"><span class="nav-icon">💎</span>Cotisations spéciales</a>
+        </nav>
+        <div class="sidebar-footer">
+          <small>Application de gestion de tontine</small>
         </div>
+      </aside>
+      <div class="sidebar-backdrop"></div>
 
-        <!-- Actions rapides -->
-        <div class="card">
-          <div class="card-title">Actions rapides</div>
-          <div class="d-flex gap-10 actions-rapides">
-            <a href="/membres" class="btn btn-primary">👥 Gérer les membres</a>
-            <a href="/reunions" class="btn btn-success">📅 Nouvelle réunion</a>
-            <a href="/projets" class="btn btn-info">📋 Gérer les projets</a>
+      <div class="app-main">
+        <header class="topbar">
+          <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">☰</button>
+          <div class="topbar-title">
+            <h1>Tableau de bord</h1>
+            <p>Vue d'ensemble des membres, réunions et projets</p>
           </div>
-        </div>
+        </header>
 
-        <!-- Dernières réunions (conservé) -->
-        <div class="card">
-          <div class="card-title">Dernières réunions</div>
-          <div id="dernieresReunions">Chargement des réunions...</div>
-        </div>
+        <main class="content">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <h3 id="membresActifs">0</h3>
+              <p>Membres actifs</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📅</div>
+              <h3 id="reunionsTotal">0</h3>
+              <p>Réunions organisées</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🟢</div>
+              <h3 id="reunionsEnCours">0</h3>
+              <p>Réunions en cours</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <h3 id="totalProjets">0</h3>
+              <p>Projets totaux</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🚧</div>
+              <h3 id="projetsEnCoursStat">0</h3>
+              <p>Projets en cours</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">✅</div>
+              <h3 id="projetsTermines">0</h3>
+              <p>Projets terminés</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title d-flex justify-between align-center">
+              <span>📊 Projet sélectionné</span>
+              <select id="projetSelect" class="form-control" style="width: auto; max-width: 320px"></select>
+            </div>
+            <div id="projetDetails" class="card-body">
+              <p>Chargement…</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Actions rapides</div>
+            <div class="d-flex gap-10 actions-rapides">
+              <a href="/membres" class="btn btn-primary">👥 Gérer les membres</a>
+              <a href="/reunions" class="btn btn-success">📅 Nouvelle réunion</a>
+              <a href="/projets" class="btn btn-info">🎯 Gérer les projets</a>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Dernières réunions</div>
+            <div id="dernieresReunions">
+              <div class="loading"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
 
-    <script>
-      const API = "http://localhost:3000/api";
-
-      async function chargerDashboard() {
-        try {
-          // Membres
-          const resM = await fetch(`${API}/membres/count`);
-          const dataM = await resM.json();
-          document.getElementById("membresActifs").textContent = dataM.success
-            ? dataM.data.total
-            : 0;
-
-          // Réunions
-          const resR = await fetch(`${API}/reunions`);
-          const dataR = await resR.json();
-          if (dataR.success) {
-            const reunions = dataR.data;
-            document.getElementById("reunionsTotal").textContent =
-              reunions.length;
-            const enCoursR = reunions.filter(
-              (r) => r.statut === "en_cours",
-            ).length;
-            document.getElementById("reunionsEnCours").textContent = enCoursR;
-          }
-
-          // Projets
-          const resP = await fetch(`${API}/projets`);
-          const dataP = await resP.json();
-          if (dataP.success) {
-            const projets = dataP.data;
-
-            // Stats globales projets
-            document.getElementById("totalProjets").textContent =
-              projets.length;
-            const enCoursP = projets.filter(
-              (p) => p.statut === "en_cours",
-            ).length;
-            const terminesP = projets.filter(
-              (p) => p.statut === "termine",
-            ).length;
-            document.getElementById("projetsEnCoursStat").textContent =
-              enCoursP;
-            document.getElementById("projetsTermines").textContent = terminesP;
-
-            // Select projet (tri par date création DESC)
-            const select = document.getElementById("projetSelect");
-            select.innerHTML =
-              '<option value="">-- Sélectionner un projet --</option>';
-            projets.sort(
-              (a, b) => new Date(b.date_creation) - new Date(a.date_creation),
-            );
-
-            projets.forEach((p) => {
-              const opt = document.createElement("option");
-              opt.value = p.id;
-              opt.textContent = `${p.nom} (${p.statut === "en_cours" ? "En cours" : p.statut})`;
-              select.appendChild(opt);
-            });
-
-            // Par défaut : dernier projet en cours
-            const defaultProj =
-              projets.find((p) => p.statut === "en_cours") || projets[0];
-            if (defaultProj) {
-              select.value = defaultProj.id;
-              afficherDetailsProjet(defaultProj);
-            }
-
-            select.addEventListener("change", () => {
-              const proj = projets.find((p) => p.id == select.value);
-              if (proj) afficherDetailsProjet(proj);
-            });
-          }
-        } catch (e) {
-          console.error("Erreur chargement dashboard", e);
-        }
-      }
-
-      function afficherDetailsProjet(p) {
-        const cible = Number(p.montant_cible || 0).toLocaleString("fr-FR");
-        const collecte = Number(p.montant_collecte || 0).toLocaleString(
-          "fr-FR",
-        );
-        const restant = Math.max(
-          0,
-          Number(p.montant_cible || 0) - Number(p.montant_collecte || 0),
-        ).toLocaleString("fr-FR");
-
-        document.getElementById("projetDetails").innerHTML = `
-        <h3>${p.nom}</h3>
-        <p><strong>Description :</strong> ${p.description || "—"}</p>
-        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;">
-          <div style="background:#f0f4ff;padding:15px;border-radius:10px;text-align:center;">
-            <small>Cible</small>
-            <h3 style="color:#667eea;margin:8px 0 0;">${cible} FCFA</h3>
-          </div>
-          <div style="background:#f0fdf4;padding:15px;border-radius:10px;text-align:center;">
-            <small>Collecté</small>
-            <h3 style="color:#28a745;margin:8px 0 0;">${collecte} FCFA</h3>
-          </div>
-          <div style="background:#fff4f0;padding:15px;border-radius:10px;text-align:center;">
-            <small>Restant</small>
-            <h3 style="color:#dc3545;margin:8px 0 0;">${restant} FCFA</h3>
-          </div>
-        </div>
-      `;
-      }
-
-      window.addEventListener("DOMContentLoaded", chargerDashboard);
-    </script>
+    <script src="js/common.js"></script>
+    <script src="js/dashboard.js"></script>
   </body>
 </html>

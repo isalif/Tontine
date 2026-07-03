@@ -8,7 +8,6 @@ const config = require("./config");
 const membreRoutes = require("./routes/membreRoutes");
 const reunionRoutes = require("./routes/reunionRoutes");
 const cotisationRoutes = require("./routes/cotisationRoutes");
-const listepresenceRoutes = require("./routes/listepresenceRoutes");
 const projetRoutes = require("./routes/projetRoutes");
 const cotisationSpecialeRoutes = require("./routes/cotisations-speciales");
 
@@ -27,9 +26,7 @@ app.use(express.static(path.join(__dirname, "..", "frontend")));
 app.use("/api/membres", membreRoutes);
 app.use("/api/reunions", reunionRoutes);
 app.use("/api/cotisations", cotisationRoutes);
-app.use("/api/listes-presence", listepresenceRoutes);
 app.use("/api/projets", projetRoutes);
-app.use("/api/reunions", reunionRoutes);
 app.use("/api/cotisations-speciales", cotisationSpecialeRoutes);
 
 // ✅ AJOUT : Routes propres pour les pages HTML (sans .html)
@@ -38,8 +35,7 @@ const pages = [
   { route: "/reunions", file: "reunions.html" },
   { route: "/cotisations", file: "cotisations.html" },
   { route: "/membres", file: "membres.html" },
-  { route: "/listes-presence", file: "listes-presence.html" },
-  { route: "/rapports", file: "rapports.html" },
+  { route: "/projets", file: "projets.html" },
   { route: "/cotisations-special", file: "cotisations-special.html" },
 ];
 

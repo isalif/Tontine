@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cotisations — Tontix by Draken</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body data-page="reunions">
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <span class="sidebar-brand-icon"><i class="fa-solid fa-sack-dollar"></i></span>
+          <div class="sidebar-brand-text">
+            <strong>Tontix</strong>
+            <small>by Draken</small>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="/" data-page="index" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-house"></i></span>Tableau de bord</a>
+          <a href="/membres" data-page="membres" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-users"></i></span>Membres</a>
+          <a href="/reunions" data-page="reunions" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-calendar-days"></i></span>Réunions</a>
+          <a href="/projets" data-page="projets" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-bullseye"></i></span>Projets</a>
+          <a href="/cotisations-special" data-page="cotisations-special" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-gem"></i></span>Cotisations spéciales</a>
+        </nav>
+        <div class="sidebar-footer">
+          <a href="/profile" class="sidebar-user">
+            <span class="sidebar-user-avatar" id="sidebarUserAvatar">--</span>
+            <span class="sidebar-user-name" id="sidebarUserName">Mon profil</span>
+          </a>
+          <button class="sidebar-logout" id="sidebarLogout" title="Se déconnecter">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </aside>
+      <div class="sidebar-backdrop"></div>
+
+      <div class="app-main">
+        <header class="topbar">
+          <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+          <div class="topbar-title">
+            <h1>Cotisations</h1>
+            <p id="headerDate">Réunion du ...</p>
+          </div>
+          <div class="topbar-actions">
+            <a href="reunions.html" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> <span class="btn-label">Réunions</span></a>
+            <button class="btn btn-info" onclick="exporterPDF()"><i class="fa-solid fa-download"></i> <span class="btn-label">Exporter la présence (PDF)</span></button>
+            <button class="btn btn-warning" id="btnCloture" onclick="cloturerReunion()"><i class="fa-solid fa-lock"></i> <span class="btn-label">Clôturer la réunion</span></button>
+          </div>
+        </header>
+
+        <main class="content">
+          <div id="alert" class="alert"></div>
+
+          <div class="stats-grid stats-grid-page">
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+              <h3 id="statTotalCollecte">0</h3>
+              <p>Total collecté (FCFA)</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-user-check"></i></div>
+              <h3 id="statPresents">0</h3>
+              <p>Présents</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-user-xmark"></i></div>
+              <h3 id="statAbsents">0</h3>
+              <p>Absents</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <h3 id="statPenalites">0</h3>
+              <p>Pénalités (FCFA)</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <input
+              type="text"
+              id="filtreInput"
+              class="form-control"
+              placeholder="Rechercher par nom ou numéro..."
+              oninput="filtrerCotisationsListe()"
+            />
+          </div>
+
+          <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Chargement des cotisations...</p>
+          </div>
+
+          <div id="cotisationsTable">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Membre</th>
+                    <th>Numéro</th>
+                    <th>Présent</th>
+                    <th>Cotisation mensuelle</th>
+                    <th>Pénalité</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="cotisationsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <div class="empty-state-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+            <h3>Aucune donnée</h3>
+            <p>Impossible de charger les cotisations</p>
+            <a href="reunions.html" class="btn btn-primary mt-20">Retour aux réunions</a>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal Modifier Cotisation -->
+    <div id="modalCotisation" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Modifier la cotisation</h2>
+          <button type="button" class="modal-close" data-close="modalCotisation"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="cotisationForm">
+          <input type="hidden" id="cotisationId" />
+
+          <p><strong>Membre :</strong> <span id="membreNom"></span></p>
+
+          <div class="form-group mt-20">
+            <label for="cotisationMensuelle">Cotisation mensuelle (FCFA)</label>
+            <input type="number" id="cotisationMensuelle" class="form-control" min="0" step="100" required />
+          </div>
+
+          <div class="form-group">
+            <label for="penalite">Pénalité (FCFA)</label>
+            <input type="number" id="penalite" class="form-control" min="0" step="100" required />
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close="modalCotisation">Annuler</button>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Configuration -->
+    <div id="modalConfig" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2><i class="fa-solid fa-gear"></i> Configuration des montants</h2>
+          <button type="button" class="modal-close" data-close="modalConfig"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="configForm">
+          <div class="form-group">
+            <label for="configMensuelle">Cotisation mensuelle par défaut (FCFA)</label>
+            <input type="number" id="configMensuelle" class="form-control" min="0" step="100" required />
+          </div>
+
+          <div class="form-group">
+            <label for="configPenalite">Pénalité de retard par défaut (FCFA)</label>
+            <input type="number" id="configPenalite" class="form-control" min="0" step="100" required />
+          </div>
+
+          <div class="alert alert-warning show">
+            <strong><i class="fa-solid fa-triangle-exclamation"></i> Attention :</strong> Ces valeurs seront utilisées pour les prochaines réunions.
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close="modalConfig">Annuler</button>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/cotisations.js"></script>
+  </body>
+</html>

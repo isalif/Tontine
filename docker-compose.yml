@@ -2,18 +2,18 @@ name: tontine
 
 services:
   db:
-    image: mariadb:11.2
+    image: mysql:8.0
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-tontine_dev}
-      MARIADB_DATABASE: tontine_db
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-tontine_dev}
+      MYSQL_DATABASE: tontine_db
     ports:
       - "${DB_HOST_PORT:-3307}:3306"
     volumes:
-      - tontine_db_data:/var/lib/mysql
+      - tontine_mysql_data:/var/lib/mysql
       - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -24,7 +24,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       db:
@@ -35,13 +35,10 @@ services:
       DB_USER: root
       DB_PASSWORD: ${DB_PASSWORD:-tontine_dev}
       DB_NAME: tontine_db
-      PORT: 3000
-      SESSION_SECRET: ${SESSION_SECRET:-tontine-dev-secret-change-me}
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-3000}:80"
     volumes:
-      - ./frontend:/frontend
-      - tontine_uploads_data:/app/uploads
+      - .:/var/www/html
     networks:
       - tontine_net
 
@@ -61,5 +58,4 @@ networks:
   tontine_net:
 
 volumes:
-  tontine_db_data:
-  tontine_uploads_data:
+  tontine_mysql_data:

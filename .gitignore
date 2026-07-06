@@ -1,6 +1,6 @@
 # Uploaded user content
-backend/uploads/avatars/*
-!backend/uploads/avatars/.gitkeep
+uploads/avatars/*
+!uploads/avatars/.gitkeep
 
 # Logs
 logs

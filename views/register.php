@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Créer un compte — Tontix by Draken</title>
+    <title>Créer un compte — Kotiz by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -17,7 +17,7 @@
 
         <div class="auth-brand-content">
           <div class="auth-brand-icon"><i class="fa-solid fa-sack-dollar"></i></div>
-          <h1>Tontix</h1>
+          <h1>Kotiz</h1>
           <p class="auth-brand-sub">by Draken</p>
           <p class="auth-brand-slogan">
             Rejoignez le portail de gestion de la tontine pour suivre les
@@ -50,6 +50,14 @@
             <div class="form-group">
               <label for="email">Adresse e-mail</label>
               <input type="email" id="email" class="form-control" required autocomplete="username" placeholder="vous@exemple.com" />
+            </div>
+
+            <div class="form-group">
+              <label for="membreId">Vous êtes...</label>
+              <select id="membreId" class="form-control">
+                <option value="">-- Sélectionnez votre nom --</option>
+              </select>
+              <small id="membreIdHelp">Si vous ne trouvez pas votre nom, contactez l'administrateur — vous pourrez être relié à votre fiche plus tard.</small>
             </div>
 
             <div class="form-group">

@@ -3,7 +3,8 @@ let cotisations = [];
 let reunionInfo = null;
 
 // Récupérer l'ID de la réunion depuis l'URL
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
+  await window.currentUserReady;
   const urlParams = new URLSearchParams(window.location.search);
   reunionId = urlParams.get("reunion");
 
@@ -110,6 +111,7 @@ function afficherCotisations(liste) {
   const tbody = document.getElementById("cotisationsBody");
   tbody.innerHTML = "";
   const cloturee = reunionInfo && reunionInfo.statut === "cloturee";
+  const isAdmin = window.currentUser?.role === "admin";
 
   liste.forEach((c) => {
     const tr = document.createElement("tr");
@@ -121,7 +123,7 @@ function afficherCotisations(liste) {
           type="checkbox"
           class="presence-checkbox"
           ${c.present ? "checked" : ""}
-          ${cloturee ? "disabled" : ""}
+          ${cloturee || !isAdmin ? "disabled" : ""}
           onchange="togglePresence(${c.membre_id}, this.checked)"
         />
       </td>
@@ -130,9 +132,11 @@ function afficherCotisations(liste) {
       <td><strong>${formatMontant(c.total)} FCFA</strong></td>
       <td>
         ${
-          !cloturee
+          isAdmin && !cloturee
             ? `<button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${c.id})"><i class="fa-solid fa-pen"></i> Modifier</button>`
-            : '<span style="color: var(--color-text-muted);">Réunion clôturée</span>'
+            : cloturee
+              ? '<span style="color: var(--color-text-muted);">Réunion clôturée</span>'
+              : ""
         }
       </td>
     `;

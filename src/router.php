@@ -1,18 +1,19 @@
 <?php
 
-// Pages : chemin => [fichier de vue, protégée par login]
+// Pages : chemin => [fichier de vue, accès requis (null = public, 'auth' = connecté, 'admin' = admin)]
 const PAGE_ROUTES = [
-    '/' => ['index.php', true],
-    '/membres' => ['membres.php', true],
-    '/reunions' => ['reunions.php', true],
-    '/reunions.html' => ['reunions.php', true],
-    '/cotisations' => ['cotisations.php', true],
-    '/cotisations.html' => ['cotisations.php', true],
-    '/projets' => ['projets.php', true],
-    '/cotisations-special' => ['cotisations-special.php', true],
-    '/profile' => ['profile.php', true],
-    '/login' => ['login.php', false],
-    '/register' => ['register.php', false],
+    '/' => ['index.php', 'auth'],
+    '/membres' => ['membres.php', 'admin'],
+    '/reunions' => ['reunions.php', 'auth'],
+    '/reunions.html' => ['reunions.php', 'auth'],
+    '/cotisations' => ['cotisations.php', 'auth'],
+    '/cotisations.html' => ['cotisations.php', 'auth'],
+    '/projets' => ['projets.php', 'auth'],
+    '/cotisations-special' => ['cotisations-special.php', 'auth'],
+    '/utilisateurs' => ['users.php', 'admin'],
+    '/profile' => ['profile.php', 'auth'],
+    '/login' => ['login.php', null],
+    '/register' => ['register.php', null],
 ];
 
 function dispatch_page(string $path): void
@@ -23,10 +24,15 @@ function dispatch_page(string $path): void
         return;
     }
 
-    [$view, $protected] = PAGE_ROUTES[$path];
+    [$view, $access] = PAGE_ROUTES[$path];
 
-    if ($protected && empty($_SESSION['user_id'])) {
+    if ($access === 'auth' && empty($_SESSION['user_id'])) {
         header('Location: /login');
+        return;
+    }
+
+    if ($access === 'admin' && ($_SESSION['role'] ?? null) !== 'admin') {
+        header('Location: /');
         return;
     }
 
@@ -36,58 +42,66 @@ function dispatch_page(string $path): void
 function dispatch_api(string $method, string $path): void
 {
     $routes = [
-        // Membres
-        ['GET', '#^/api/membres$#', ['MembreController', 'getAll']],
-        ['GET', '#^/api/membres/count$#', ['MembreController', 'count']],
-        ['GET', '#^/api/membres/(\d+)$#', ['MembreController', 'getById']],
-        ['POST', '#^/api/membres$#', ['MembreController', 'create']],
-        ['PUT', '#^/api/membres/(\d+)$#', ['MembreController', 'update']],
-        ['PATCH', '#^/api/membres/(\d+)/toggle-actif$#', ['MembreController', 'toggleActif']],
-        ['DELETE', '#^/api/membres/(\d+)$#', ['MembreController', 'delete']],
+        // Membres (annuaire complet = admin uniquement)
+        ['GET', '#^/api/membres/unlinked$#', ['MembreController', 'getUnlinked']],
+        ['GET', '#^/api/membres$#', ['MembreController', 'getAll'], 'admin'],
+        ['GET', '#^/api/membres/count$#', ['MembreController', 'count'], 'admin'],
+        ['GET', '#^/api/membres/(\d+)$#', ['MembreController', 'getById'], 'admin'],
+        ['POST', '#^/api/membres$#', ['MembreController', 'create'], 'admin'],
+        ['PUT', '#^/api/membres/(\d+)$#', ['MembreController', 'update'], 'admin'],
+        ['PATCH', '#^/api/membres/(\d+)/toggle-actif$#', ['MembreController', 'toggleActif'], 'admin'],
+        ['DELETE', '#^/api/membres/(\d+)$#', ['MembreController', 'delete'], 'admin'],
 
-        // Réunions
+        // Réunions (lecture ouverte, écriture admin)
         ['GET', '#^/api/reunions$#', ['ReunionController', 'getAll']],
         ['GET', '#^/api/reunions/(\d+)$#', ['ReunionController', 'getById']],
-        ['POST', '#^/api/reunions$#', ['ReunionController', 'create']],
-        ['PUT', '#^/api/reunions/(\d+)/cloture$#', ['ReunionController', 'cloture']],
-        ['PUT', '#^/api/reunions/(\d+)$#', ['ReunionController', 'update']],
-        ['DELETE', '#^/api/reunions/(\d+)$#', ['ReunionController', 'delete']],
+        ['POST', '#^/api/reunions$#', ['ReunionController', 'create'], 'admin'],
+        ['PUT', '#^/api/reunions/(\d+)/cloture$#', ['ReunionController', 'cloture'], 'admin'],
+        ['PUT', '#^/api/reunions/(\d+)$#', ['ReunionController', 'update'], 'admin'],
+        ['DELETE', '#^/api/reunions/(\d+)$#', ['ReunionController', 'delete'], 'admin'],
 
-        // Cotisations
+        // Cotisations (lecture filtrée par rôle dans le contrôleur, écriture admin)
+        ['GET', '#^/api/cotisations/mon-resume$#', ['CotisationController', 'getMonResume']],
         ['GET', '#^/api/cotisations/reunion/(\d+)/total$#', ['CotisationController', 'getTotalReunion']],
         ['GET', '#^/api/cotisations/reunion/(\d+)$#', ['CotisationController', 'getByReunion']],
-        ['PUT', '#^/api/cotisations/penalite/(\d+)/(\d+)$#', ['CotisationController', 'addPenalite']],
-        ['PUT', '#^/api/cotisations/presence/(\d+)/(\d+)$#', ['CotisationController', 'updatePresence']],
+        ['PUT', '#^/api/cotisations/penalite/(\d+)/(\d+)$#', ['CotisationController', 'addPenalite'], 'admin'],
+        ['PUT', '#^/api/cotisations/presence/(\d+)/(\d+)$#', ['CotisationController', 'updatePresence'], 'admin'],
         ['GET', '#^/api/cotisations/totaux-par-reunion$#', ['CotisationController', 'getTotauxParReunion']],
         ['GET', '#^/api/cotisations/configuration$#', ['CotisationController', 'getConfiguration']],
-        ['PUT', '#^/api/cotisations/configuration$#', ['CotisationController', 'updateConfiguration']],
-        ['PUT', '#^/api/cotisations/(\d+)$#', ['CotisationController', 'update']],
+        ['PUT', '#^/api/cotisations/configuration$#', ['CotisationController', 'updateConfiguration'], 'admin'],
+        ['PUT', '#^/api/cotisations/(\d+)$#', ['CotisationController', 'update'], 'admin'],
 
-        // Cotisations spéciales
+        // Cotisations spéciales (lecture filtrée par rôle, écriture admin)
         ['GET', '#^/api/cotisations-speciales$#', ['CotisationSpecialeController', 'getAll']],
         ['GET', '#^/api/cotisations-speciales/(\d+)$#', ['CotisationSpecialeController', 'getById']],
-        ['POST', '#^/api/cotisations-speciales$#', ['CotisationSpecialeController', 'create']],
-        ['PUT', '#^/api/cotisations-speciales/(\d+)$#', ['CotisationSpecialeController', 'update']],
-        ['DELETE', '#^/api/cotisations-speciales/(\d+)$#', ['CotisationSpecialeController', 'delete']],
+        ['POST', '#^/api/cotisations-speciales$#', ['CotisationSpecialeController', 'create'], 'admin'],
+        ['PUT', '#^/api/cotisations-speciales/(\d+)$#', ['CotisationSpecialeController', 'update'], 'admin'],
+        ['DELETE', '#^/api/cotisations-speciales/(\d+)$#', ['CotisationSpecialeController', 'delete'], 'admin'],
 
-        // Projets
+        // Projets (lecture ouverte/collective, écriture admin)
         ['GET', '#^/api/projets$#', ['ProjetController', 'getAll']],
         ['GET', '#^/api/projets/(\d+)/cotisations$#', ['ProjetController', 'getCotisations']],
-        ['POST', '#^/api/projets/(\d+)/cotisations$#', ['ProjetController', 'addCotisation']],
-        ['DELETE', '#^/api/projets/(\d+)/cotisations/(\d+)$#', ['ProjetController', 'removeCotisation']],
+        ['POST', '#^/api/projets/(\d+)/cotisations$#', ['ProjetController', 'addCotisation'], 'admin'],
+        ['DELETE', '#^/api/projets/(\d+)/cotisations/(\d+)$#', ['ProjetController', 'removeCotisation'], 'admin'],
         ['GET', '#^/api/projets/(\d+)$#', ['ProjetController', 'getById']],
-        ['POST', '#^/api/projets$#', ['ProjetController', 'create']],
-        ['PUT', '#^/api/projets/(\d+)/config$#', ['ProjetController', 'updateConfig']],
-        ['PUT', '#^/api/projets/(\d+)$#', ['ProjetController', 'update']],
-        ['DELETE', '#^/api/projets/(\d+)$#', ['ProjetController', 'delete']],
+        ['POST', '#^/api/projets$#', ['ProjetController', 'create'], 'admin'],
+        ['PUT', '#^/api/projets/(\d+)/config$#', ['ProjetController', 'updateConfig'], 'admin'],
+        ['PUT', '#^/api/projets/(\d+)$#', ['ProjetController', 'update'], 'admin'],
+        ['DELETE', '#^/api/projets/(\d+)$#', ['ProjetController', 'delete'], 'admin'],
+
+        // Gestion des comptes utilisateurs (admin uniquement)
+        ['GET', '#^/api/users$#', ['UtilisateurController', 'getAll'], 'admin'],
+        ['PUT', '#^/api/users/(\d+)/role$#', ['UtilisateurController', 'updateRole'], 'admin'],
+        ['PUT', '#^/api/users/(\d+)/membre$#', ['UtilisateurController', 'updateMembreLink'], 'admin'],
+        ['DELETE', '#^/api/users/(\d+)$#', ['UtilisateurController', 'delete'], 'admin'],
 
         // Authentification
         ['POST', '#^/api/auth/register$#', ['AuthController', 'register']],
         ['POST', '#^/api/auth/login$#', ['AuthController', 'login']],
         ['POST', '#^/api/auth/logout$#', ['AuthController', 'logout']],
-        ['GET', '#^/api/auth/me$#', ['AuthController', 'me'], true],
-        ['PUT', '#^/api/auth/profile$#', ['AuthController', 'updateProfile'], true],
-        ['POST', '#^/api/auth/photo$#', ['AuthController', 'updatePhoto'], true],
+        ['GET', '#^/api/auth/me$#', ['AuthController', 'me'], 'auth'],
+        ['PUT', '#^/api/auth/profile$#', ['AuthController', 'updateProfile'], 'auth'],
+        ['POST', '#^/api/auth/photo$#', ['AuthController', 'updatePhoto'], 'auth'],
     ];
 
     foreach ($routes as $route) {
@@ -96,8 +110,11 @@ function dispatch_api(string $method, string $path): void
             continue;
         }
         if (preg_match($pattern, $path, $matches)) {
-            if ($route[3] ?? false) {
+            $access = $route[3] ?? null;
+            if ($access === 'auth') {
                 require_auth();
+            } elseif ($access === 'admin') {
+                require_admin();
             }
             array_shift($matches);
             [$class, $fn] = $handler;

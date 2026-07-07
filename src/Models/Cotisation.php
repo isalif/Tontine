@@ -69,6 +69,20 @@ class Cotisation
         return $stmt->fetch();
     }
 
+    // Résumé personnel d'un membre (dashboard du rôle "membre").
+    public static function getResumeMembre(int $membreId): array
+    {
+        $stmt = Database::pdo()->prepare(
+            'SELECT
+                COALESCE((SELECT SUM(total) FROM cotisations WHERE membre_id = ?), 0) AS total_cotise,
+                COALESCE((SELECT SUM(penalite) FROM cotisations WHERE membre_id = ?), 0) AS total_penalites,
+                (SELECT COUNT(*) FROM presences WHERE membre_id = ? AND present = TRUE) AS reunions_assistees,
+                (SELECT COUNT(*) FROM reunions) AS reunions_total',
+        );
+        $stmt->execute([$membreId, $membreId, $membreId]);
+        return $stmt->fetch();
+    }
+
     public static function getTotauxParReunion(): array
     {
         $stmt = Database::pdo()->query(

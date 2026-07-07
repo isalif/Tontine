@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Membres — Kotiz by Draken</title>
+    <title>Utilisateurs — Kotiz by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
   </head>
-  <body data-page="membres">
+  <body data-page="utilisateurs">
     <div class="app-shell">
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
@@ -45,11 +45,8 @@
         <header class="topbar">
           <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
           <div class="topbar-title">
-            <h1>Membres</h1>
-            <p>Ajouter, modifier ou désactiver des membres</p>
-          </div>
-          <div class="topbar-actions">
-            <button class="btn btn-primary" onclick="ouvrirModalAjout()"><i class="fa-solid fa-plus"></i> <span class="btn-label">Ajouter un membre</span></button>
+            <h1>Utilisateurs</h1>
+            <p>Gérer les comptes, les rôles et le lien avec les fiches membres</p>
           </div>
         </header>
 
@@ -58,24 +55,19 @@
 
           <div class="stats-grid stats-grid-page">
             <div class="stat-card">
-              <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
-              <h3 id="statMembresTotal">0</h3>
-              <p>Total membres</p>
+              <div class="stat-icon"><i class="fa-solid fa-user-group"></i></div>
+              <h3 id="statUsersTotal">0</h3>
+              <p>Total comptes</p>
             </div>
             <div class="stat-card">
-              <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
-              <h3 id="statMembresActifs">0</h3>
-              <p>Actifs</p>
+              <div class="stat-icon"><i class="fa-solid fa-user-shield"></i></div>
+              <h3 id="statUsersAdmins">0</h3>
+              <p>Administrateurs</p>
             </div>
             <div class="stat-card">
-              <div class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></div>
-              <h3 id="statMembresInactifs">0</h3>
-              <p>Inactifs</p>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
-              <h3 id="statMembresAbonnes">0</h3>
-              <p>Abonnés annuels</p>
+              <div class="stat-icon"><i class="fa-solid fa-user"></i></div>
+              <h3 id="statUsersMembres">0</h3>
+              <p>Membres</p>
             </div>
           </div>
 
@@ -84,99 +76,60 @@
               type="text"
               id="filtreInput"
               class="form-control"
-              placeholder="Rechercher par nom, prénom ou téléphone..."
-              oninput="filtrerMembres()"
+              placeholder="Rechercher par nom, prénom ou e-mail..."
+              oninput="filtrerUsers()"
             />
           </div>
 
           <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p>Chargement des membres...</p>
+            <p>Chargement des utilisateurs...</p>
           </div>
 
-          <div id="membresTable">
+          <div id="usersTable">
             <div class="table-container">
               <table>
                 <thead>
                   <tr>
                     <th>Nom</th>
-                    <th>Prénom</th>
-                    <th>Numéro</th>
-                    <th>Mode de cotisation</th>
-                    <th>Statut</th>
+                    <th>E-mail</th>
+                    <th>Rôle</th>
+                    <th>Membre lié</th>
+                    <th>Créé le</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="membresBody"></tbody>
+                <tbody id="usersBody"></tbody>
               </table>
             </div>
           </div>
 
           <div id="emptyState" class="empty-state hidden">
-            <div class="empty-state-icon"><i class="fa-solid fa-users"></i></div>
-            <h3>Aucun membre</h3>
-            <p>Commencez par ajouter votre premier membre</p>
-            <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()"><i class="fa-solid fa-plus"></i> Ajouter un membre</button>
+            <div class="empty-state-icon"><i class="fa-solid fa-user-group"></i></div>
+            <h3>Aucun utilisateur</h3>
+            <p>Les comptes créés depuis la page d'inscription apparaîtront ici.</p>
           </div>
         </main>
       </div>
     </div>
 
-    <!-- Modal Ajouter/Modifier -->
-    <div id="modal" class="modal">
-      <div class="modal-content">
+    <!-- Modal Lier / Délier un membre -->
+    <div id="modalLink" class="modal">
+      <div class="modal-content modal-small">
         <div class="modal-header">
-          <h2 id="modalTitle">Ajouter un membre</h2>
-          <button type="button" class="modal-close" data-close="modal"><i class="fa-solid fa-xmark"></i></button>
+          <h2 id="modalLinkTitle">Lier à un membre</h2>
+          <button type="button" class="modal-close" data-close="modalLink"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <form id="membreForm">
-          <input type="hidden" id="membreId" />
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="nom">Nom *</label>
-              <input type="text" id="nom" class="form-control" required />
-            </div>
-            <div class="form-group">
-              <label for="prenom">Prénom *</label>
-              <input type="text" id="prenom" class="form-control" required />
-            </div>
-          </div>
-
+        <form id="linkForm">
+          <input type="hidden" id="linkUserId" />
           <div class="form-group">
-            <label for="numero">Numéro de téléphone *</label>
-            <input
-              type="text"
-              id="numero"
-              class="form-control"
-              required
-              placeholder="+227 XX XX XX XX"
-            />
+            <label for="linkMembreId">Fiche membre</label>
+            <select id="linkMembreId" class="form-control">
+              <option value="">-- Aucun (délier) --</option>
+            </select>
           </div>
-
-          <div class="form-group">
-            <label>
-              <input type="checkbox" id="abonneAnnuel" />
-              <span><strong>Abonné annuel</strong></span>
-            </label>
-            <small>Cochez si ce membre a déjà payé toutes les cotisations de l'année.</small>
-          </div>
-
-          <div class="form-group">
-            <p class="toggle-group-label"><strong>Statut du membre</strong></p>
-            <div class="toggle-wrapper">
-              <input type="checkbox" id="actif" checked aria-label="Membre actif" />
-              <label class="toggle-label" for="actif">
-                <span class="track"></span>
-                <span class="thumb"></span>
-              </label>
-              <span class="toggle-text" id="actifLabel">Actif</span>
-            </div>
-            <small>Désactivez pour que ce membre n'apparaisse plus dans les réunions.</small>
-          </div>
-
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-close="modal">Annuler</button>
+            <button type="button" class="btn btn-secondary" data-close="modalLink">Annuler</button>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
           </div>
         </form>
@@ -191,7 +144,7 @@
           <button type="button" class="modal-close" data-close="modalConfirmDelete"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body modal-body-center">
-          <p id="deleteMessage" class="text-lg">Voulez-vous vraiment supprimer ce membre ?</p>
+          <p id="deleteMessage" class="text-lg">Voulez-vous vraiment supprimer ce compte ?</p>
           <p class="text-warning mt-10">Cette action est irréversible.</p>
         </div>
         <div class="modal-footer">
@@ -202,6 +155,6 @@
     </div>
 
     <script src="js/common.js"></script>
-    <script src="js/membres.js"></script>
+    <script src="js/users.js"></script>
   </body>
 </html>

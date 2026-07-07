@@ -17,7 +17,18 @@ class CotisationSpecialeController
     public static function getAll(): void
     {
         try {
-            send_json(['success' => true, 'data' => CotisationSpeciale::getAll()]);
+            $data = CotisationSpeciale::getAll();
+
+            // Un membre ne voit que ses propres cotisations spéciales.
+            if (($_SESSION['role'] ?? null) === 'membre') {
+                $membreId = $_SESSION['membre_id'] ?? null;
+                $data = array_values(array_filter(
+                    $data,
+                    fn ($c) => $membreId && (int) $c['membre_id'] === (int) $membreId,
+                ));
+            }
+
+            send_json(['success' => true, 'data' => $data]);
         } catch (Throwable $e) {
             error_log($e->getMessage());
             send_error('Erreur serveur');
@@ -31,6 +42,12 @@ class CotisationSpecialeController
             if (!$data) {
                 send_error('Cotisation introuvable', 404);
             }
+
+            if (($_SESSION['role'] ?? null) === 'membre'
+                && (int) $data['membre_id'] !== (int) ($_SESSION['membre_id'] ?? 0)) {
+                send_error('Cotisation introuvable', 404);
+            }
+
             send_json(['success' => true, 'data' => $data]);
         } catch (Throwable $e) {
             send_error('Erreur serveur');

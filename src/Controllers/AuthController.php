@@ -28,6 +28,7 @@ class AuthController
             $prenom = $body['prenom'] ?? null;
             $email = $body['email'] ?? null;
             $password = $body['password'] ?? null;
+            $membreId = !empty($body['membre_id']) ? (int) $body['membre_id'] : null;
 
             $errors = self::validateRegister($nom, $prenom, $email, $password);
             if ($errors) {
@@ -38,10 +39,21 @@ class AuthController
                 send_error('Un compte existe déjà avec cet e-mail', 400);
             }
 
+            if ($membreId !== null) {
+                if (!Membre::getById($membreId)) {
+                    send_error('Membre introuvable', 400);
+                }
+                if (Utilisateur::findByMembreId($membreId)) {
+                    send_error('Ce membre est déjà relié à un autre compte', 400);
+                }
+            }
+
             $passwordHash = password_hash($password, PASSWORD_BCRYPT);
-            $userId = Utilisateur::create($nom, $prenom, $email, $passwordHash);
+            $userId = Utilisateur::create($nom, $prenom, $email, $passwordHash, 'membre', $membreId);
 
             $_SESSION['user_id'] = $userId;
+            $_SESSION['role'] = 'membre';
+            $_SESSION['membre_id'] = $membreId;
 
             send_json([
                 'success' => true,
@@ -72,6 +84,8 @@ class AuthController
             }
 
             $_SESSION['user_id'] = $user['id'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['membre_id'] = $user['membre_id'];
             if ($remember) {
                 remember_session();
             }

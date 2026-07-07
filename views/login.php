@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Connexion — Tontix by Draken</title>
+    <title>Connexion — Kotiz by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -17,7 +17,7 @@
 
         <div class="auth-brand-content">
           <div class="auth-brand-icon"><i class="fa-solid fa-sack-dollar"></i></div>
-          <h1>Tontix</h1>
+          <h1>Kotiz</h1>
           <p class="auth-brand-sub">by Draken</p>
           <p class="auth-brand-slogan">
             Portail de gestion de la tontine : membres, réunions, cotisations

@@ -16,6 +16,19 @@ class Membre
         return $stmt->fetch() ?: null;
     }
 
+    // Membres actifs sans compte de connexion relié — utilisé sur la page d'inscription.
+    public static function getUnlinked(): array
+    {
+        $stmt = Database::pdo()->query(
+            'SELECT m.id, m.nom, m.prenom
+             FROM membres m
+             LEFT JOIN utilisateurs u ON u.membre_id = m.id
+             WHERE m.actif = TRUE AND u.id IS NULL
+             ORDER BY m.nom, m.prenom',
+        );
+        return $stmt->fetchAll();
+    }
+
     public static function checkNumeroExists(string $numero, ?int $excludeId = null): bool
     {
         $query = 'SELECT id FROM membres WHERE numero = ?';

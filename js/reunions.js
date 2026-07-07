@@ -1,6 +1,7 @@
 let reunions = [];
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
+  await window.currentUserReady;
   chargerReunions();
   chargerProjetsEnCours();
 });
@@ -64,6 +65,7 @@ function filtrerReunions() {
 function afficherReunions(reunions) {
   const tbody = document.getElementById("reunionsBody");
   tbody.innerHTML = "";
+  const isAdmin = window.currentUser?.role === "admin";
 
   reunions.forEach((r) => {
     const statutBadge =
@@ -80,14 +82,18 @@ function afficherReunions(reunions) {
       <td>
         <a href="cotisations.html?reunion=${r.id}" class="btn btn-sm btn-info"><i class="fa-solid fa-file-pen"></i> Cotisations</a>
         ${
-          r.statut === "en_cours"
+          isAdmin && r.statut === "en_cours"
             ? `
           <button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${r.id})"><i class="fa-solid fa-pen"></i> Modifier</button>
           <button class="btn btn-sm btn-warning" onclick="cloturerReunion(${r.id})"><i class="fa-solid fa-lock"></i> Clôturer</button>
         `
             : ""
         }
-        <button class="btn btn-sm btn-danger" onclick="supprimerReunion(${r.id})"><i class="fa-solid fa-trash"></i> Supprimer</button>
+        ${
+          isAdmin
+            ? `<button class="btn btn-sm btn-danger" onclick="supprimerReunion(${r.id})"><i class="fa-solid fa-trash"></i> Supprimer</button>`
+            : ""
+        }
       </td>
     `;
     tbody.appendChild(tr);

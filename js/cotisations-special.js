@@ -1,7 +1,8 @@
 let cotisationsActuelles = [];
 
 // ==================== INITIALISATION ====================
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
+  await window.currentUserReady;
   chargerCotisations();
   chargerMembresPourSelect();
   chargerProjetsEnCours();
@@ -61,8 +62,14 @@ function afficherCotisations(liste) {
       <td>${c.projet_nom || "—"}</td>
       <td>${STATUT_BADGES[c.statut] || c.statut}</td>
       <td>
+        ${
+          window.currentUser?.role === "admin"
+            ? `
         <button class="btn btn-sm btn-warning" onclick="ouvrirModalModification(${c.id})"><i class="fa-solid fa-pen"></i> Modifier</button>
         <button class="btn btn-sm btn-danger" onclick="supprimerCotisation(${c.id})"><i class="fa-solid fa-trash"></i> Supprimer</button>
+        `
+            : ""
+        }
       </td>
     `;
     tbody.appendChild(tr);

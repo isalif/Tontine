@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tableau de bord — Tontix by Draken</title>
+    <title>Tableau de bord — Kotiz by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -14,16 +14,21 @@
         <div class="sidebar-brand">
           <span class="sidebar-brand-icon"><i class="fa-solid fa-sack-dollar"></i></span>
           <div class="sidebar-brand-text">
-            <strong>Tontix</strong>
+            <strong>Kotiz</strong>
             <small>by Draken</small>
           </div>
         </div>
         <nav class="sidebar-nav">
           <a href="/" data-page="index" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-house"></i></span>Tableau de bord</a>
+          <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
           <a href="/membres" data-page="membres" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-users"></i></span>Membres</a>
+          <?php endif; ?>
           <a href="/reunions" data-page="reunions" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-calendar-days"></i></span>Réunions</a>
           <a href="/projets" data-page="projets" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-bullseye"></i></span>Projets</a>
           <a href="/cotisations-special" data-page="cotisations-special" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-gem"></i></span>Cotisations spéciales</a>
+          <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
+          <a href="/utilisateurs" data-page="utilisateurs" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-user-gear"></i></span>Utilisateurs</a>
+          <?php endif; ?>
         </nav>
         <div class="sidebar-footer">
           <a href="/profile" class="sidebar-user">
@@ -47,6 +52,7 @@
         </header>
 
         <main class="content">
+          <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
           <div class="stats-grid">
             <div class="stat-card">
               <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
@@ -79,6 +85,25 @@
               <p>Projets terminés</p>
             </div>
           </div>
+          <?php else: ?>
+          <div class="stats-grid stats-grid-page">
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+              <h3 id="monTotalCotise">0</h3>
+              <p>Total cotisé (FCFA)</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <h3 id="monTotalPenalites">0</h3>
+              <p>Pénalités (FCFA)</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+              <h3 id="mesReunionsAssistees">0 / 0</h3>
+              <p>Réunions assistées</p>
+            </div>
+          </div>
+          <?php endif; ?>
 
           <div class="charts-grid">
             <div class="card chart-card">
@@ -114,9 +139,11 @@
           <div class="card">
             <div class="card-title">Actions rapides</div>
             <div class="d-flex gap-10 actions-rapides">
+              <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
               <a href="/membres" class="btn btn-primary"><i class="fa-solid fa-users"></i> Gérer les membres</a>
-              <a href="/reunions" class="btn btn-success"><i class="fa-solid fa-calendar-days"></i> Nouvelle réunion</a>
-              <a href="/projets" class="btn btn-info"><i class="fa-solid fa-bullseye"></i> Gérer les projets</a>
+              <?php endif; ?>
+              <a href="/reunions" class="btn btn-success"><i class="fa-solid fa-calendar-days"></i> Réunions</a>
+              <a href="/projets" class="btn btn-info"><i class="fa-solid fa-bullseye"></i> Projets</a>
             </div>
           </div>
 

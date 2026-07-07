@@ -5,9 +5,41 @@ class CotisationController
     public static function getByReunion(string $reunionId): void
     {
         try {
-            send_json(['success' => true, 'data' => Cotisation::getByReunion((int) $reunionId)]);
+            $cotisations = Cotisation::getByReunion((int) $reunionId);
+
+            // Un membre ne voit que sa propre ligne, jamais celles des autres.
+            if (($_SESSION['role'] ?? null) === 'membre') {
+                $membreId = $_SESSION['membre_id'] ?? null;
+                $cotisations = array_values(array_filter(
+                    $cotisations,
+                    fn ($c) => $membreId && (int) $c['membre_id'] === (int) $membreId,
+                ));
+            }
+
+            send_json(['success' => true, 'data' => $cotisations]);
         } catch (Throwable $e) {
             error_log('Erreur getByReunion cotisations: ' . $e->getMessage());
+            send_error('Erreur serveur');
+        }
+    }
+
+    // Résumé personnel de l'utilisateur connecté (dashboard du rôle "membre").
+    public static function getMonResume(): void
+    {
+        try {
+            $membreId = $_SESSION['membre_id'] ?? null;
+            if (!$membreId) {
+                send_json(['success' => true, 'data' => [
+                    'total_cotise' => 0,
+                    'total_penalites' => 0,
+                    'reunions_assistees' => 0,
+                    'reunions_total' => 0,
+                ]]);
+            }
+
+            send_json(['success' => true, 'data' => Cotisation::getResumeMembre((int) $membreId)]);
+        } catch (Throwable $e) {
+            error_log('Erreur getMonResume: ' . $e->getMessage());
             send_error('Erreur serveur');
         }
     }

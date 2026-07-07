@@ -33,6 +33,17 @@ class MembreController
         }
     }
 
+    // Public (page d'inscription, avant connexion) : membres actifs sans compte relié.
+    public static function getUnlinked(): void
+    {
+        try {
+            send_json(['success' => true, 'data' => Membre::getUnlinked()]);
+        } catch (Throwable $e) {
+            error_log('Erreur getUnlinked membres: ' . $e->getMessage());
+            send_error('Erreur serveur');
+        }
+    }
+
     public static function getById(string $id): void
     {
         try {

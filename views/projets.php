@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Projets — Tontix by Draken</title>
+    <title>Projets — Kotiz by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -13,16 +13,21 @@
         <div class="sidebar-brand">
           <span class="sidebar-brand-icon"><i class="fa-solid fa-sack-dollar"></i></span>
           <div class="sidebar-brand-text">
-            <strong>Tontix</strong>
+            <strong>Kotiz</strong>
             <small>by Draken</small>
           </div>
         </div>
         <nav class="sidebar-nav">
           <a href="/" data-page="index" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-house"></i></span>Tableau de bord</a>
+          <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
           <a href="/membres" data-page="membres" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-users"></i></span>Membres</a>
+          <?php endif; ?>
           <a href="/reunions" data-page="reunions" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-calendar-days"></i></span>Réunions</a>
           <a href="/projets" data-page="projets" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-bullseye"></i></span>Projets</a>
           <a href="/cotisations-special" data-page="cotisations-special" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-gem"></i></span>Cotisations spéciales</a>
+          <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
+          <a href="/utilisateurs" data-page="utilisateurs" class="nav-link"><span class="nav-icon"><i class="fa-solid fa-user-gear"></i></span>Utilisateurs</a>
+          <?php endif; ?>
         </nav>
         <div class="sidebar-footer">
           <a href="/profile" class="sidebar-user">
@@ -44,7 +49,9 @@
             <p>Suivre et gérer les projets financés par les cotisations</p>
           </div>
           <div class="topbar-actions">
+            <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
             <button class="btn btn-primary" onclick="ouvrirModalAjout()"><i class="fa-solid fa-plus"></i> <span class="btn-label">Nouveau projet</span></button>
+            <?php endif; ?>
           </div>
         </header>
 

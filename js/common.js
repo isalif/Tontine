@@ -182,7 +182,20 @@ function initials(nom, prenom) {
   return `${(prenom || "").charAt(0)}${(nom || "").charAt(0)}`.toUpperCase() || "?";
 }
 
-async function loadCurrentUser() {
+// Lancé immédiatement (avant même DOMContentLoaded) pour que le rôle soit connu
+// le plus tôt possible. Les scripts de page font `await window.currentUserReady`
+// avant de décider quoi afficher, pour éviter un flash d'éléments admin.
+window.currentUserReady = (async () => {
+  try {
+    const data = await apiFetch("/auth/me");
+    window.currentUser = data.success ? data.data : null;
+  } catch (e) {
+    window.currentUser = null;
+  }
+  return window.currentUser;
+})();
+
+function renderSidebarUser(user) {
   const nameEl = document.getElementById("sidebarUserName");
   const avatarEl = document.getElementById("sidebarUserAvatar");
   const logoutBtn = document.getElementById("sidebarLogout");
@@ -195,25 +208,19 @@ async function loadCurrentUser() {
     });
   }
 
-  try {
-    const data = await apiFetch("/auth/me");
-    if (!data.success) return;
+  if (!user) return;
 
-    const user = data.data;
-    if (nameEl) nameEl.textContent = `${user.prenom} ${user.nom}`;
-    if (avatarEl) {
-      if (user.photo) {
-        avatarEl.outerHTML = `<img src="/uploads/avatars/${user.photo}" alt="" class="sidebar-user-avatar" id="sidebarUserAvatar" />`;
-      } else {
-        avatarEl.textContent = initials(user.nom, user.prenom);
-      }
+  if (nameEl) nameEl.textContent = `${user.prenom} ${user.nom}`;
+  if (avatarEl) {
+    if (user.photo) {
+      avatarEl.outerHTML = `<img src="/uploads/avatars/${user.photo}" alt="" class="sidebar-user-avatar" id="sidebarUserAvatar" />`;
+    } else {
+      avatarEl.textContent = initials(user.nom, user.prenom);
     }
-  } catch (e) {
-    console.error("Erreur chargement utilisateur", e);
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   initSidebar();
-  loadCurrentUser();
+  renderSidebarUser(await window.currentUserReady);
 });

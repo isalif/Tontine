@@ -1,4 +1,7 @@
-window.addEventListener("DOMContentLoaded", chargerDashboard);
+window.addEventListener("DOMContentLoaded", async () => {
+  await window.currentUserReady;
+  chargerDashboard();
+});
 
 if (window.Chart) {
   Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
@@ -9,29 +12,35 @@ if (window.Chart) {
 }
 
 async function chargerDashboard() {
+  const isAdmin = window.currentUser?.role === "admin";
+
   try {
-    const [dataM, dataR, dataP, dataT] = await Promise.all([
-      apiFetch("/membres/count"),
+    const [dataR, dataP, dataT] = await Promise.all([
       apiFetch("/reunions"),
       apiFetch("/projets"),
       apiFetch("/cotisations/totaux-par-reunion"),
     ]);
 
-    document.getElementById("membresActifs").textContent = dataM.success
-      ? dataM.data.total
-      : 0;
+    if (isAdmin) {
+      const dataM = await apiFetch("/membres/count");
+      document.getElementById("membresActifs").textContent = dataM.success ? dataM.data.total : 0;
+    } else {
+      chargerMonResume();
+    }
 
     if (dataR.success) {
       const reunions = dataR.data;
-      document.getElementById("reunionsTotal").textContent = reunions.length;
-      const enCoursR = reunions.filter((r) => r.statut === "en_cours").length;
-      document.getElementById("reunionsEnCours").textContent = enCoursR;
+      if (isAdmin) {
+        document.getElementById("reunionsTotal").textContent = reunions.length;
+        const enCoursR = reunions.filter((r) => r.statut === "en_cours").length;
+        document.getElementById("reunionsEnCours").textContent = enCoursR;
+      }
       afficherDernieresReunions(reunions.slice(0, 5));
       renderChartReunionsStatut(reunions);
     }
 
     if (dataP.success) {
-      afficherStatsProjets(dataP.data);
+      afficherStatsProjets(dataP.data, isAdmin);
       renderChartProjetsMontants(dataP.data);
     }
 
@@ -41,6 +50,21 @@ async function chargerDashboard() {
   } catch (e) {
     console.error("Erreur chargement dashboard", e);
     toast("Erreur de connexion au serveur", "danger");
+  }
+}
+
+async function chargerMonResume() {
+  try {
+    const data = await apiFetch("/cotisations/mon-resume");
+    if (!data.success) return;
+
+    const r = data.data;
+    document.getElementById("monTotalCotise").textContent = formatMontant(r.total_cotise);
+    document.getElementById("monTotalPenalites").textContent = formatMontant(r.total_penalites);
+    document.getElementById("mesReunionsAssistees").textContent =
+      `${r.reunions_assistees} / ${r.reunions_total}`;
+  } catch (e) {
+    console.error("Erreur chargement résumé personnel", e);
   }
 }
 
@@ -206,12 +230,14 @@ function afficherDernieresReunions(reunions) {
     .join("");
 }
 
-function afficherStatsProjets(projets) {
-  document.getElementById("totalProjets").textContent = projets.length;
-  const enCoursP = projets.filter((p) => p.statut === "en_cours").length;
-  const terminesP = projets.filter((p) => p.statut === "termine").length;
-  document.getElementById("projetsEnCoursStat").textContent = enCoursP;
-  document.getElementById("projetsTermines").textContent = terminesP;
+function afficherStatsProjets(projets, isAdmin) {
+  if (isAdmin) {
+    document.getElementById("totalProjets").textContent = projets.length;
+    const enCoursP = projets.filter((p) => p.statut === "en_cours").length;
+    const terminesP = projets.filter((p) => p.statut === "termine").length;
+    document.getElementById("projetsEnCoursStat").textContent = enCoursP;
+    document.getElementById("projetsTermines").textContent = terminesP;
+  }
 
   const select = document.getElementById("projetSelect");
   select.innerHTML = '<option value="">-- Sélectionner un projet --</option>';

@@ -1,4 +1,5 @@
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
+  await window.currentUserReady;
   chargerProjets();
 });
 
@@ -61,9 +62,15 @@ function afficherProjets(projets) {
       <td>${STATUT_BADGES[p.statut] || p.statut}</td>
       <td>
         <button class="btn btn-info btn-sm" onclick="voirDetail(${p.id})"><i class="fa-solid fa-eye"></i> Détails</button>
+        ${
+          window.currentUser?.role === "admin"
+            ? `
         <button class="btn btn-secondary btn-sm" onclick="ouvrirModalModifier(${p.id})"><i class="fa-solid fa-pen"></i></button>
         <button class="btn btn-warning btn-sm" onclick="ouvrirModalConfig(${p.id})"><i class="fa-solid fa-gear"></i></button>
         <button class="btn btn-danger btn-sm" onclick="supprimerProjet(${p.id})"><i class="fa-solid fa-trash"></i></button>
+        `
+            : ""
+        }
       </td>
     `;
     tbody.appendChild(tr);

@@ -53,11 +53,15 @@
             </div>
 
             <div class="form-group">
-              <label for="membreId">Vous êtes...</label>
-              <select id="membreId" class="form-control">
-                <option value="">-- Sélectionnez votre nom --</option>
-              </select>
-              <small id="membreIdHelp">Si vous ne trouvez pas votre nom, contactez l'administrateur — vous pourrez être relié à votre fiche plus tard.</small>
+              <label for="membreUsername">Nom d'utilisateur membre (optionnel)</label>
+              <input
+                type="text"
+                id="membreUsername"
+                class="form-control"
+                autocomplete="off"
+                placeholder="Fourni par l'administrateur"
+              />
+              <small>Si l'administrateur vous en a communiqué un, saisissez-le pour relier votre compte à votre fiche membre. Sinon, laissez vide — vous pourrez être relié plus tard.</small>
             </div>
 
             <div class="form-group">

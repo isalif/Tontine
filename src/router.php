@@ -43,7 +43,6 @@ function dispatch_api(string $method, string $path): void
 {
     $routes = [
         // Membres (annuaire complet = admin uniquement)
-        ['GET', '#^/api/membres/unlinked$#', ['MembreController', 'getUnlinked']],
         ['GET', '#^/api/membres$#', ['MembreController', 'getAll'], 'admin'],
         ['GET', '#^/api/membres/count$#', ['MembreController', 'count'], 'admin'],
         ['GET', '#^/api/membres/(\d+)$#', ['MembreController', 'getById'], 'admin'],

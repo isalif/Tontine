@@ -102,6 +102,7 @@
                     <th>Nom</th>
                     <th>Prénom</th>
                     <th>Numéro</th>
+                    <th>Nom d'utilisateur</th>
                     <th>Mode de cotisation</th>
                     <th>Statut</th>
                     <th>Actions</th>
@@ -152,6 +153,17 @@
               required
               placeholder="+227 XX XX XX XX"
             />
+          </div>
+
+          <div class="form-group">
+            <label for="username">Nom d'utilisateur (optionnel)</label>
+            <input
+              type="text"
+              id="username"
+              class="form-control"
+              placeholder="ex: amina.h"
+            />
+            <small>Permet à ce membre de créer son compte en le saisissant à l'inscription. Laissez vide s'il ne doit pas encore pouvoir s'inscrire.</small>
           </div>
 
           <div class="form-group">

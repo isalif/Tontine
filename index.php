@@ -23,8 +23,7 @@ if ($path !== '/') {
 $method = $_SERVER['REQUEST_METHOD'];
 
 if (str_starts_with($path, '/api/')) {
-    $isPublicApiPath = str_starts_with($path, '/api/auth/') || $path === '/api/membres/unlinked';
-    if (empty($_SESSION['user_id']) && !$isPublicApiPath) {
+    if (empty($_SESSION['user_id']) && !str_starts_with($path, '/api/auth/')) {
         send_error('Non authentifié', 401);
     }
     dispatch_api($method, $path);

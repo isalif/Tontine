@@ -51,6 +51,7 @@ function afficherMembres(membres) {
       <td>${m.nom}</td>
       <td>${m.prenom}</td>
       <td>${m.numero}</td>
+      <td>${m.username || '<span style="color:var(--color-text-muted)">—</span>'}</td>
       <td>${badgeAbonne}</td>
       <td>${badgeActif}</td>
       <td>
@@ -113,6 +114,7 @@ function ouvrirModalModification(id) {
   document.getElementById("nom").value = m.nom;
   document.getElementById("prenom").value = m.prenom;
   document.getElementById("numero").value = m.numero;
+  document.getElementById("username").value = m.username || "";
   document.getElementById("abonneAnnuel").checked = !!m.abonne_annuel;
   document.getElementById("actif").checked = !!m.actif;
   majLabelActif();
@@ -156,6 +158,7 @@ document.getElementById("membreForm").addEventListener("submit", async (e) => {
     nom: document.getElementById("nom").value.trim(),
     prenom: document.getElementById("prenom").value.trim(),
     numero: document.getElementById("numero").value.trim(),
+    username: document.getElementById("username").value.trim(),
     abonne_annuel: document.getElementById("abonneAnnuel").checked,
     actif: document.getElementById("actif").checked,
   };

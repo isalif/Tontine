@@ -128,7 +128,7 @@ async function ouvrirModalLink(id) {
       .forEach((m) => {
         const option = document.createElement("option");
         option.value = m.id;
-        option.textContent = `${m.nom} ${m.prenom}`;
+        option.textContent = m.username ? `${m.nom} ${m.prenom} (${m.username})` : `${m.nom} ${m.prenom}`;
         if (m.id === user.membre_id) option.selected = true;
         select.appendChild(option);
       });

@@ -2,7 +2,7 @@
 
 class MembreController
 {
-    private static function validate(?string $nom, ?string $prenom, ?string $numero): array
+    private static function validate(?string $nom, ?string $prenom, ?string $numero, ?string $username = null): array
     {
         $errors = [];
 
@@ -18,6 +18,9 @@ class MembreController
         if ($numero && !preg_match('/^[\d+\s-]+$/', trim($numero))) {
             $errors[] = 'Le numéro ne doit contenir que des chiffres, espaces, tirets ou +';
         }
+        if ($username && !preg_match('/^[a-zA-Z0-9._-]{3,50}$/', trim($username))) {
+            $errors[] = "Le nom d'utilisateur doit contenir 3 à 50 caractères (lettres, chiffres, points, tirets)";
+        }
 
         return $errors;
     }
@@ -29,17 +32,6 @@ class MembreController
             send_json(['success' => true, 'data' => Membre::getAll($includeInactive)]);
         } catch (Throwable $e) {
             error_log('Erreur getAll membres: ' . $e->getMessage());
-            send_error('Erreur serveur');
-        }
-    }
-
-    // Public (page d'inscription, avant connexion) : membres actifs sans compte relié.
-    public static function getUnlinked(): void
-    {
-        try {
-            send_json(['success' => true, 'data' => Membre::getUnlinked()]);
-        } catch (Throwable $e) {
-            error_log('Erreur getUnlinked membres: ' . $e->getMessage());
             send_error('Erreur serveur');
         }
     }
@@ -65,8 +57,9 @@ class MembreController
             $nom = $body['nom'] ?? null;
             $prenom = $body['prenom'] ?? null;
             $numero = $body['numero'] ?? null;
+            $username = trim($body['username'] ?? '') ?: null;
 
-            $errors = self::validate($nom, $prenom, $numero);
+            $errors = self::validate($nom, $prenom, $numero, $username);
             if ($errors) {
                 send_json(['success' => false, 'message' => 'Erreurs de validation', 'errors' => $errors], 400);
             }
@@ -75,8 +68,12 @@ class MembreController
                 send_error('Ce numéro est déjà utilisé par un autre membre', 400);
             }
 
+            if ($username && Membre::checkUsernameExists($username)) {
+                send_error("Ce nom d'utilisateur est déjà utilisé par un autre membre", 400);
+            }
+
             $abonneAnnuel = (bool) ($body['abonne_annuel'] ?? false);
-            $membreId = Membre::create($nom, $prenom, $numero, $abonneAnnuel);
+            $membreId = Membre::create($nom, $prenom, $numero, $abonneAnnuel, $username);
 
             send_json([
                 'success' => true,
@@ -100,8 +97,9 @@ class MembreController
             $nom = $body['nom'] ?? null;
             $prenom = $body['prenom'] ?? null;
             $numero = $body['numero'] ?? null;
+            $username = trim($body['username'] ?? '') ?: null;
 
-            $errors = self::validate($nom, $prenom, $numero);
+            $errors = self::validate($nom, $prenom, $numero, $username);
             if ($errors) {
                 send_json(['success' => false, 'message' => 'Erreurs de validation', 'errors' => $errors], 400);
             }
@@ -110,10 +108,14 @@ class MembreController
                 send_error('Ce numéro est déjà utilisé par un autre membre', 400);
             }
 
+            if ($username && Membre::checkUsernameExists($username, (int) $id)) {
+                send_error("Ce nom d'utilisateur est déjà utilisé par un autre membre", 400);
+            }
+
             $abonneAnnuel = (bool) ($body['abonne_annuel'] ?? false);
             $actif = array_key_exists('actif', $body) ? (bool) $body['actif'] : true;
 
-            Membre::update((int) $id, $nom, $prenom, $numero, $abonneAnnuel, $actif);
+            Membre::update((int) $id, $nom, $prenom, $numero, $abonneAnnuel, $actif, $username);
 
             send_json([
                 'success' => true,

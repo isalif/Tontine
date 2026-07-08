@@ -16,17 +16,11 @@ class Membre
         return $stmt->fetch() ?: null;
     }
 
-    // Membres actifs sans compte de connexion relié — utilisé sur la page d'inscription.
-    public static function getUnlinked(): array
+    public static function findByUsername(string $username): ?array
     {
-        $stmt = Database::pdo()->query(
-            'SELECT m.id, m.nom, m.prenom
-             FROM membres m
-             LEFT JOIN utilisateurs u ON u.membre_id = m.id
-             WHERE m.actif = TRUE AND u.id IS NULL
-             ORDER BY m.nom, m.prenom',
-        );
-        return $stmt->fetchAll();
+        $stmt = Database::pdo()->prepare('SELECT * FROM membres WHERE username = ?');
+        $stmt->execute([$username]);
+        return $stmt->fetch() ?: null;
     }
 
     public static function checkNumeroExists(string $numero, ?int $excludeId = null): bool
@@ -44,13 +38,33 @@ class Membre
         return $stmt->fetch() !== false;
     }
 
-    public static function create(string $nom, string $prenom, string $numero, bool $abonneAnnuel = false): int
+    public static function checkUsernameExists(string $username, ?int $excludeId = null): bool
     {
+        $query = 'SELECT id FROM membres WHERE username = ?';
+        $params = [$username];
+
+        if ($excludeId) {
+            $query .= ' AND id != ?';
+            $params[] = $excludeId;
+        }
+
+        $stmt = Database::pdo()->prepare($query);
+        $stmt->execute($params);
+        return $stmt->fetch() !== false;
+    }
+
+    public static function create(
+        string $nom,
+        string $prenom,
+        string $numero,
+        bool $abonneAnnuel = false,
+        ?string $username = null,
+    ): int {
         $stmt = Database::pdo()->prepare(
-            'INSERT INTO membres (nom, prenom, numero, date_ajout, actif, abonne_annuel)
-             VALUES (?, ?, ?, CURDATE(), TRUE, ?)',
+            'INSERT INTO membres (nom, prenom, numero, username, date_ajout, actif, abonne_annuel)
+             VALUES (?, ?, ?, ?, CURDATE(), TRUE, ?)',
         );
-        $stmt->execute([trim($nom), trim($prenom), trim($numero), $abonneAnnuel]);
+        $stmt->execute([trim($nom), trim($prenom), trim($numero), $username ?: null, $abonneAnnuel]);
         return (int) Database::pdo()->lastInsertId();
     }
 
@@ -61,11 +75,12 @@ class Membre
         string $numero,
         bool $abonneAnnuel = false,
         bool $actif = true,
+        ?string $username = null,
     ): bool {
         $stmt = Database::pdo()->prepare(
-            'UPDATE membres SET nom = ?, prenom = ?, numero = ?, abonne_annuel = ?, actif = ? WHERE id = ?',
+            'UPDATE membres SET nom = ?, prenom = ?, numero = ?, abonne_annuel = ?, actif = ?, username = ? WHERE id = ?',
         );
-        $stmt->execute([trim($nom), trim($prenom), trim($numero), $abonneAnnuel, $actif, $id]);
+        $stmt->execute([trim($nom), trim($prenom), trim($numero), $abonneAnnuel, $actif, $username ?: null, $id]);
         return $stmt->rowCount() > 0;
     }
 

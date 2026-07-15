@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Connexion — Kotiz by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="<?= asset_url('css/style.css') ?>" />
   </head>
   <body>
     <div class="auth-shell">
@@ -65,7 +65,7 @@
       </div>
     </div>
 
-    <script src="js/common.js"></script>
-    <script src="js/login.js"></script>
+    <script src="<?= asset_url('js/common.js') ?>"></script>
+    <script src="<?= asset_url('js/login.js') ?>"></script>
   </body>
 </html>

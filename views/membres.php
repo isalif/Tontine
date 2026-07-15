@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Membres — Kotiz by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="<?= asset_url('css/style.css') ?>" />
   </head>
   <body data-page="membres">
     <div class="app-shell">
@@ -213,7 +213,7 @@
       </div>
     </div>
 
-    <script src="js/common.js"></script>
-    <script src="js/membres.js"></script>
+    <script src="<?= asset_url('js/common.js') ?>"></script>
+    <script src="<?= asset_url('js/membres.js') ?>"></script>
   </body>
 </html>

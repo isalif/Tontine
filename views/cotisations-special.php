@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cotisations spéciales — Kotiz by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="<?= asset_url('css/style.css') ?>" />
   </head>
   <body data-page="cotisations-special">
     <div class="app-shell">
@@ -181,7 +181,7 @@
       </div>
     </div>
 
-    <script src="js/common.js"></script>
-    <script src="js/cotisations-special.js"></script>
+    <script src="<?= asset_url('js/common.js') ?>"></script>
+    <script src="<?= asset_url('js/cotisations-special.js') ?>"></script>
   </body>
 </html>

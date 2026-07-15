@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tableau de bord — Kotiz by Draken</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="<?= asset_url('css/style.css') ?>" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   </head>
   <body data-page="index">
@@ -157,7 +157,7 @@
       </div>
     </div>
 
-    <script src="js/common.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script src="<?= asset_url('js/common.js') ?>"></script>
+    <script src="<?= asset_url('js/dashboard.js') ?>"></script>
   </body>
 </html>

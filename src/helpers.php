@@ -24,3 +24,13 @@ function send_error(string $message, int $status = 500, array $extra = []): void
 {
     send_json(array_merge(['success' => false, 'message' => $message], $extra), $status);
 }
+
+// Ajoute un paramètre de version basé sur la date de modification du fichier,
+// pour forcer le navigateur à recharger css/js après un déploiement (évite les
+// bugs "déjà corrigés côté serveur" à cause d'un fichier resté en cache).
+function asset_url(string $path): string
+{
+    $file = __DIR__ . '/../' . $path;
+    $version = is_file($file) ? filemtime($file) : time();
+    return $path . '?v=' . $version;
+}

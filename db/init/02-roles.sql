@@ -7,7 +7,4 @@ ALTER TABLE utilisateurs
   ADD CONSTRAINT fk_utilisateurs_membre FOREIGN KEY (membre_id)
       REFERENCES membres(id) ON DELETE SET NULL;
 
--- Les comptes qui existaient déjà (créés avant l'introduction des rôles)
--- deviennent admin ; seuls les comptes créés après cette migration seront
--- "membre" par défaut.
 UPDATE utilisateurs SET role = 'admin';

@@ -118,7 +118,9 @@
             <div class="empty-state-icon"><i class="fa-solid fa-gem"></i></div>
             <h3>Aucune cotisation spéciale</h3>
             <p>Commencez par ajouter votre première cotisation spéciale</p>
+            <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
             <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()"><i class="fa-solid fa-plus"></i> Ajouter la première</button>
+            <?php endif; ?>
           </div>
         </main>
       </div>

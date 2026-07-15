@@ -15,7 +15,8 @@ async function apiFetch(path, options = {}) {
   });
 
   const isAuthEndpoint = path.startsWith("/auth/login") || path.startsWith("/auth/register");
-  if (response.status === 401 && !isAuthEndpoint) {
+  const onPublicPage = window.location.pathname === "/login" || window.location.pathname === "/register";
+  if (response.status === 401 && !isAuthEndpoint && !onPublicPage) {
     window.location.href = "/login";
   }
 

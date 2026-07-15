@@ -112,7 +112,9 @@
             <div class="empty-state-icon"><i class="fa-solid fa-calendar-days"></i></div>
             <h3>Aucune réunion</h3>
             <p>Créez votre première réunion pour commencer</p>
+            <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
             <button class="btn btn-success mt-20" onclick="ouvrirModalCreation()"><i class="fa-solid fa-plus"></i> Nouvelle réunion</button>
+            <?php endif; ?>
           </div>
         </main>
       </div>

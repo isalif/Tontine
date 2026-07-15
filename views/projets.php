@@ -119,7 +119,9 @@
             <div class="empty-state-icon"><i class="fa-solid fa-bullseye"></i></div>
             <h3>Aucun projet</h3>
             <p>Commencez par créer votre premier projet</p>
+            <?php if (($_SESSION['role'] ?? null) === 'admin'): ?>
             <button class="btn btn-primary mt-20" onclick="ouvrirModalAjout()"><i class="fa-solid fa-plus"></i> Nouveau projet</button>
+            <?php endif; ?>
           </div>
         </main>
       </div>

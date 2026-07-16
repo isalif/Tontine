@@ -221,7 +221,93 @@ function renderSidebarUser(user) {
   }
 }
 
+async function loadNotifications() {
+  try {
+    const data = await apiFetch("/reunions/notifications");
+    if (!data.success) return;
+    renderNotifications(data.data || []);
+  } catch (e) {
+    console.error("Erreur chargement notifications", e);
+  }
+}
+
+function renderNotifications(items) {
+  const toggle = document.getElementById("notificationsToggle");
+  const badge = document.getElementById("notificationsBadge");
+  const list = document.getElementById("notificationsList");
+  if (!toggle || !badge || !list) return;
+
+  const unreadCount = items.filter((item) => !item.is_read).length;
+  badge.textContent = unreadCount > 0 ? unreadCount : "0";
+  badge.classList.toggle("hidden", unreadCount === 0);
+
+  if (!items.length) {
+    list.innerHTML = '<div class="notification-empty">Aucune notification pour le moment.</div>';
+    return;
+  }
+
+  list.innerHTML = items
+    .map((item) => `
+      <div class="notification-item ${item.is_read ? "" : "unread"}">
+        <div class="notification-item-title">${item.title}</div>
+        <div class="notification-item-message">${item.message}</div>
+        <div class="notification-item-time">${new Date(item.created_at).toLocaleString("fr-FR")}</div>
+      </div>
+    `)
+    .join("");
+}
+
+function initNotifications() {
+  const actions = document.querySelector(".topbar-actions");
+  if (!actions || document.getElementById("notificationsToggle")) return;
+
+  const button = document.createElement("button");
+  button.id = "notificationsToggle";
+  button.className = "btn btn-secondary notification-toggle";
+  button.innerHTML = '<i class="fa-solid fa-bell"></i><span id="notificationsBadge" class="notification-badge hidden">0</span>';
+  actions.insertBefore(button, actions.firstChild);
+
+  const panel = document.createElement("div");
+  panel.id = "notificationsPanel";
+  panel.className = "notification-panel hidden";
+  panel.innerHTML = `
+    <div class="notification-panel-header">
+      <strong>Notifications</strong>
+      <button type="button" id="notificationsMarkRead" class="btn btn-sm btn-secondary">Tout marquer comme lu</button>
+    </div>
+    <div id="notificationsList" class="notification-list"></div>
+  `;
+  document.body.appendChild(panel);
+
+  button.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    panel.classList.toggle("hidden");
+    if (!panel.classList.contains("hidden")) {
+      const badge = document.getElementById("notificationsBadge");
+      const unread = badge && badge.textContent !== "0";
+      if (unread) {
+        await apiFetch("/reunions/notifications/read", { method: "PUT" });
+        await loadNotifications();
+      }
+    }
+  });
+
+  document.getElementById("notificationsMarkRead").addEventListener("click", async (e) => {
+    e.stopPropagation();
+    await apiFetch("/reunions/notifications/read", { method: "PUT" });
+    await loadNotifications();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".notification-toggle") && !e.target.closest(".notification-panel")) {
+      panel.classList.add("hidden");
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   initSidebar();
+  initNotifications();
   renderSidebarUser(await window.currentUserReady);
+  await loadNotifications();
 });

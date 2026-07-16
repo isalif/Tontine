@@ -53,6 +53,8 @@ function dispatch_api(string $method, string $path): void
 
         // Réunions (lecture ouverte, écriture admin)
         ['GET', '#^/api/reunions$#', ['ReunionController', 'getAll']],
+        ['GET', '#^/api/reunions/notifications$#', ['ReunionController', 'getNotifications']],
+        ['PUT', '#^/api/reunions/notifications/read$#', ['ReunionController', 'markNotificationsRead']],
         ['GET', '#^/api/reunions/(\d+)$#', ['ReunionController', 'getById']],
         ['POST', '#^/api/reunions$#', ['ReunionController', 'create'], 'admin'],
         ['PUT', '#^/api/reunions/(\d+)/cloture$#', ['ReunionController', 'cloture'], 'admin'],

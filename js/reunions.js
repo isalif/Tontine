@@ -30,6 +30,7 @@ async function chargerReunions() {
 
       if (reunions.length) {
         afficherReunions(reunions);
+        afficherRapportReunion(reunions);
         document.getElementById("reunionsTable").style.display = "block";
         document.getElementById("emptyState").classList.add("hidden");
       } else {
@@ -60,6 +61,21 @@ function filtrerReunions() {
   document.querySelectorAll("#reunionsBody tr").forEach((tr) => {
     tr.style.display = tr.textContent.toLowerCase().includes(recherche) ? "" : "none";
   });
+}
+
+function afficherRapportReunion(reunions) {
+  const card = document.getElementById("rapportReunion");
+  const content = document.getElementById("rapportReunionContent");
+  if (!card || !content) return;
+
+  const latest = [...reunions].find((item) => item.rapport && item.rapport.trim());
+  if (!latest) {
+    card.classList.add("hidden");
+    return;
+  }
+
+  card.classList.remove("hidden");
+  content.innerHTML = `<strong>${latest.titre || "Réunion"}</strong><br>${latest.rapport.replace(/\n/g, "<br>")}`;
 }
 
 function afficherReunions(reunions) {
@@ -126,6 +142,7 @@ function ouvrirModalCreation() {
   document.getElementById("titre").value = "";
   document.getElementById("dateReunion").value = new Date().toISOString().split("T")[0];
   document.getElementById("projetId").value = "";
+  document.getElementById("rapport").value = "";
   document.getElementById("cotisationMensuelle").value = "";
   document.getElementById("champCotisation").style.display = "block";
   document.getElementById("btnSubmit").textContent = "Créer la réunion";
@@ -145,6 +162,7 @@ async function ouvrirModalModification(id) {
       document.getElementById("titre").value = r.titre || "";
       document.getElementById("dateReunion").value = r.date_reunion.split("T")[0];
       document.getElementById("projetId").value = r.projet_id || "";
+      document.getElementById("rapport").value = r.rapport || "";
       document.getElementById("champCotisation").style.display = "none";
       document.getElementById("btnSubmit").textContent = "Enregistrer les modifications";
       openModal("modal");
@@ -162,6 +180,7 @@ document.getElementById("reunionForm").addEventListener("submit", async (e) => {
   const titre = document.getElementById("titre").value.trim();
   const dateReunion = document.getElementById("dateReunion").value;
   const projetId = document.getElementById("projetId").value || null;
+  const rapport = document.getElementById("rapport").value.trim();
   const cotisationMensuelle = id
     ? null
     : parseFloat(document.getElementById("cotisationMensuelle").value) || null;
@@ -172,7 +191,7 @@ document.getElementById("reunionForm").addEventListener("submit", async (e) => {
   }
 
   try {
-    const body = { titre, date_reunion: dateReunion, projet_id: projetId };
+    const body = { titre, date_reunion: dateReunion, projet_id: projetId, rapport };
     if (!id && cotisationMensuelle !== null) {
       body.cotisation_mensuelle = cotisationMensuelle;
     }

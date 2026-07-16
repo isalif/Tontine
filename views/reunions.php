@@ -76,6 +76,11 @@
             </div>
           </div>
 
+          <div id="rapportReunion" class="card hidden">
+            <div class="card-title"><i class="fa-solid fa-file-lines"></i> Compte rendu de la réunion</div>
+            <div id="rapportReunionContent" class="card-body">Aucun compte rendu disponible pour le moment.</div>
+          </div>
+
           <div class="form-group">
             <input
               type="text"
@@ -150,6 +155,11 @@
             <select id="projetId" class="form-control">
               <option value="">-- Aucun projet --</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label for="rapport">Compte rendu de la réunion</label>
+            <textarea id="rapport" class="form-control" rows="5" placeholder="Rédigez ici le compte rendu de la réunion, les décisions prises et les points à suivre..."></textarea>
           </div>
 
           <div id="champCotisation" class="form-group">

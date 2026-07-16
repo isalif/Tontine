@@ -32,6 +32,7 @@ class ReunionController
             $titre = $body['titre'] ?? null;
             $dateReunion = $body['date_reunion'] ?? null;
             $projetId = $body['projet_id'] ?? null;
+            $rapport = $body['rapport'] ?? null;
             $cotisationMensuelle = $body['cotisation_mensuelle'] ?? null;
 
             if (!$dateReunion) {
@@ -42,9 +43,16 @@ class ReunionController
                 send_error('Une réunion existe déjà à cette date', 400);
             }
 
-            $reunionId = Reunion::create($titre, $dateReunion, $projetId ? (int) $projetId : null);
+            $reunionId = Reunion::create($titre, $dateReunion, $projetId ? (int) $projetId : null, $rapport);
             Reunion::createPresences($reunionId);
             Reunion::createCotisations($reunionId, $cotisationMensuelle);
+            Notification::createForAllUsers(
+                'reunion_planifiee',
+                'Nouvelle réunion prévue',
+                'La réunion ' . ($titre ?: 'sans titre') . ' est prévue. Un paiement mensuel est maintenant attendu.',
+                'reunion',
+                $reunionId,
+            );
 
             send_json([
                 'success' => true,
@@ -64,6 +72,7 @@ class ReunionController
             $titre = $body['titre'] ?? null;
             $dateReunion = $body['date_reunion'] ?? null;
             $projetId = $body['projet_id'] ?? null;
+            $rapport = $body['rapport'] ?? null;
 
             if (!$dateReunion) {
                 send_error('La date de réunion est obligatoire', 400);
@@ -79,7 +88,7 @@ class ReunionController
                 send_error('Une réunion existe déjà à cette date', 400);
             }
 
-            $success = Reunion::update((int) $id, $titre, $dateReunion, $projetId ? (int) $projetId : null);
+            $success = Reunion::update((int) $id, $titre, $dateReunion, $projetId ? (int) $projetId : null, $rapport);
             if ($success) {
                 send_json([
                     'success' => true,
@@ -99,10 +108,43 @@ class ReunionController
     {
         try {
             if (Reunion::cloture((int) $id)) {
+                $reunion = Reunion::getById((int) $id);
+                if ($reunion) {
+                    Notification::createForAllUsers(
+                        'reunion_cloturee',
+                        'Réunion clôturée',
+                        'La réunion ' . ($reunion['titre'] ?: 'sans titre') . ' a été clôturée.',
+                        'reunion',
+                        (int) $id,
+                    );
+                }
                 send_json(['success' => true, 'message' => 'Réunion clôturée avec succès']);
             } else {
                 send_error('Réunion introuvable', 404);
             }
+        } catch (Throwable $e) {
+            send_error('Erreur serveur');
+        }
+    }
+
+    public static function getNotifications(): void
+    {
+        try {
+            $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+            $membreId = isset($_SESSION['membre_id']) ? (int) $_SESSION['membre_id'] : null;
+            send_json(['success' => true, 'data' => Notification::getForUser($userId, $membreId)]);
+        } catch (Throwable $e) {
+            send_error('Erreur serveur');
+        }
+    }
+
+    public static function markNotificationsRead(): void
+    {
+        try {
+            $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+            $membreId = isset($_SESSION['membre_id']) ? (int) $_SESSION['membre_id'] : null;
+            Notification::markAllRead($userId, $membreId);
+            send_json(['success' => true, 'message' => 'Notifications marquées comme lues']);
         } catch (Throwable $e) {
             send_error('Erreur serveur');
         }

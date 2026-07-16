@@ -74,6 +74,13 @@ class MembreController
 
             $abonneAnnuel = (bool) ($body['abonne_annuel'] ?? false);
             $membreId = Membre::create($nom, $prenom, $numero, $abonneAnnuel, $username);
+            Notification::createForAllUsers(
+                'member_created',
+                'Nouveau membre',
+                "Le membre $prenom $nom a été ajouté à l'annuaire.",
+                'membre',
+                $membreId,
+            );
 
             send_json([
                 'success' => true,

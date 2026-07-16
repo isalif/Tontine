@@ -4,6 +4,7 @@ class Reunion
 {
     public static function getAll(): array
     {
+        Database::ensureSchema();
         $stmt = Database::pdo()->query(
             'SELECT r.*, p.nom AS projet_nom
              FROM reunions r
@@ -15,6 +16,7 @@ class Reunion
 
     public static function getById(int $id): ?array
     {
+        Database::ensureSchema();
         $stmt = Database::pdo()->prepare(
             'SELECT r.*, p.nom AS projet_nom
              FROM reunions r
@@ -40,21 +42,21 @@ class Reunion
         return $stmt->fetch() !== false;
     }
 
-    public static function create(?string $titre, string $dateReunion, ?int $projetId): int
+    public static function create(?string $titre, string $dateReunion, ?int $projetId, ?string $rapport = null): int
     {
         $stmt = Database::pdo()->prepare(
-            'INSERT INTO reunions (titre, date_reunion, projet_id, statut) VALUES (?, ?, ?, "en_cours")',
+            'INSERT INTO reunions (titre, date_reunion, projet_id, statut, rapport) VALUES (?, ?, ?, "en_cours", ?)',
         );
-        $stmt->execute([$titre ? trim($titre) : null, $dateReunion, $projetId ?: null]);
+        $stmt->execute([$titre ? trim($titre) : null, $dateReunion, $projetId ?: null, $rapport !== null ? trim($rapport) : null]);
         return (int) Database::pdo()->lastInsertId();
     }
 
-    public static function update(int $id, ?string $titre, string $dateReunion, ?int $projetId): bool
+    public static function update(int $id, ?string $titre, string $dateReunion, ?int $projetId, ?string $rapport = null): bool
     {
         $stmt = Database::pdo()->prepare(
-            'UPDATE reunions SET titre = ?, date_reunion = ?, projet_id = ? WHERE id = ?',
+            'UPDATE reunions SET titre = ?, date_reunion = ?, projet_id = ?, rapport = ? WHERE id = ?',
         );
-        $stmt->execute([$titre ? trim($titre) : null, $dateReunion, $projetId ?: null, $id]);
+        $stmt->execute([$titre ? trim($titre) : null, $dateReunion, $projetId ?: null, $rapport !== null ? trim($rapport) : null, $id]);
         return $stmt->rowCount() > 0;
     }
 

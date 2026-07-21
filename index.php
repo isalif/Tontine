@@ -1,8 +1,26 @@
 <?php
 
+require __DIR__ . '/src/helpers.php';
+
+// Interrupteur global : voir src/maintenance.php pour l'activer/désactiver.
+$maintenance = require __DIR__ . '/src/maintenance.php';
+if (!empty($maintenance['active'])) {
+    http_response_code(503);
+    $requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if (str_starts_with($requestPath, '/api/')) {
+        send_json([
+            'success' => false,
+            'message' => $maintenance['message'] ?? 'Service suspendu',
+        ], 503);
+    }
+    $message = $maintenance['message'] ?? 'Service suspendu.';
+    $deadline = $maintenance['deadline'] ?? null;
+    require __DIR__ . '/views/suspended.php';
+    exit;
+}
+
 require __DIR__ . '/src/Database.php';
 require __DIR__ . '/src/Session.php';
-require __DIR__ . '/src/helpers.php';
 require __DIR__ . '/src/Middleware/requireAuth.php';
 
 foreach (glob(__DIR__ . '/src/Models/*.php') as $file) {
